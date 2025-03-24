@@ -1,16 +1,23 @@
-# You're supposed to be responsible enough to ignore these using your
-# system-wide settings, but I want to be cautious.
+*.o
+*.exe
+server_exec
 
-# Visual Studio Code
-.vscode/*
+*.gch
+
+*.log
+*~
+
+*.bak
+
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
 !.vscode/*.code-snippets
-
-# Local History for Visual Studio Code
+*.vsix
+.idea/
 .history/
 
-# Built Visual Studio Code Extensions
-*.vsix
+.DS_Store
+
+*.d
