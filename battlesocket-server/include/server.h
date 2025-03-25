@@ -6,14 +6,15 @@
 #define SERVER_PORT 8080
 #define MAX_CLIENTS 2
 
-typedef struct {
-    int sockfd;
-    struct sockaddr_in addr;
-    char letter;
+typedef struct
+{
+  int sockfd;
+  struct sockaddr_in addr;
+  char letter;
 } Client;
 
-void init_server();
-void run_server();
-void cleanup_server();
+void init_server ();
+void run_server ();
+void cleanup_server ();
 
 #endif

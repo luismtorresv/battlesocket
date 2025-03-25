@@ -1,32 +1,47 @@
+#include "protocol.h"
 #include <stdio.h>
 #include <string.h>
-#include "protocol.h"
 
-MsgType parse_message(const char *msg) {
-    if (strncmp(msg, "SHOT", 4) == 0)
-        return MSG_SHOT;
-    return MSG_BAD_REQUEST;
+MsgType
+parse_message (const char *msg)
+{
+  if (strncmp (msg, "SHOT", 4) == 0)
+    return MSG_SHOT;
+  return MSG_BAD_REQUEST;
 }
 
-void build_start_game(char *buffer, long unix_time, const char *initial_player, const char *ship_data) {
-    sprintf(buffer, "START_GAME|%ld %s %s\n", unix_time, initial_player, ship_data);
+void
+build_start_game (char *buffer, long unix_time, const char *initial_player,
+                  const char *ship_data)
+{
+  sprintf (buffer, "START_GAME|%ld %s %s\n", unix_time, initial_player,
+           ship_data);
 }
 
-void build_joined_matchmaking(char *buffer, char letter) {
-    sprintf(buffer, "JOINED_MATCHMAKING|%c\n", letter);
+void
+build_joined_matchmaking (char *buffer, char letter)
+{
+  sprintf (buffer, "JOINED_MATCHMAKING|%c\n", letter);
 }
 
-void build_action_result(char *buffer, const char *result, const char *pos, int sunk, const char *next_player) {
-    if (sunk)
-        sprintf(buffer, "%s|%s SUNK %s\n", result, pos, next_player);
-    else
-        sprintf(buffer, "%s|%s %s\n", result, pos, next_player);
+void
+build_action_result (char *buffer, const char *result, const char *pos,
+                     int sunk, const char *next_player)
+{
+  if (sunk)
+    sprintf (buffer, "%s|%s SUNK %s\n", result, pos, next_player);
+  else
+    sprintf (buffer, "%s|%s %s\n", result, pos, next_player);
 }
 
-void build_shot(char *buffer, const char *pos) {
-    sprintf(buffer, "SHOT|%s\n", pos);
+void
+build_shot (char *buffer, const char *pos)
+{
+  sprintf (buffer, "SHOT|%s\n", pos);
 }
 
-void build_end_game(char *buffer, const char *winner) {
-    sprintf(buffer, "END_GAME|%s\n", winner);
+void
+build_end_game (char *buffer, const char *winner)
+{
+  sprintf (buffer, "END_GAME|%s\n", winner);
 }
