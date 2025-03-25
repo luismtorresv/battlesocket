@@ -3,7 +3,7 @@ CFLAGS = -Wall -Wextra -pthread
 INCLUDES = -I./include
 SRC = $(wildcard src/*.c)
 OBJ = $(SRC:.c=.o)
-TARGET = server_exec
+TARGET = server
 
 all: $(TARGET)
 
