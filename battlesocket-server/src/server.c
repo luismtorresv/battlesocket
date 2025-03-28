@@ -47,7 +47,7 @@ void
 init_server ()
 {
 
-  check_connection(server_fd = socket (AF_INET, SOCK_STREAM, 0),"Failed to create socket");
+  if (check_connection(server_fd = socket (AF_INET, SOCK_STREAM, 0),"Failed to create socket")==1) return;
 
   struct sockaddr_in serv_addr = {
     .sin_family = AF_INET,
@@ -56,9 +56,9 @@ init_server ()
   };
 
   int reuse = 1;
-  check_connection(setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse)),"SO_REUSEADDR failed");
-  check_connection(bind (server_fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr)),"Failed to bind");
-  check_connection(listen (server_fd, MAX_CLIENTS),"Failed to listen");
+  if (check_connection(setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse)),"SO_REUSEADDR failed")==1) return;
+  if (check_connection(bind(server_fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr)),"Failed to bind")==1) return;
+  if (check_connection(listen(server_fd, MAX_CLIENTS),"Failed to listen")==1) return;
   
   log_event ("Server initialized and listening...");
   printf ("Server created with fd %d\n", server_fd);
