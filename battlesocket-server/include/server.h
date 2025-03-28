@@ -13,6 +13,7 @@ typedef struct
   char letter;
 } Client;
 
+int check_connection();
 void init_server ();
 void run_server ();
 void cleanup_server ();

@@ -31,18 +31,23 @@ broadcast (const char *message)
     }
 }
 
+int check_connection(int value, const char *msg){
+  if (value < 0){
+    printf("Message: %s\n", msg);
+    log_event (msg);
+    perror("Error details");
+    return 1;
+  }
+  else{
+    return 0;
+  }
+}
+
 void
 init_server ()
 {
 
-  server_fd = socket (AF_INET, SOCK_STREAM, 0);
-  if (server_fd == -1)
-    {
-      log_event ("Failed to create socket");
-      fprintf (stderr, "[Error] Failed to create socket: %s\n",
-               strerror (errno));
-      return;
-    }
+  check_connection(server_fd = socket (AF_INET, SOCK_STREAM, 0),"Failed to create socket");
 
   struct sockaddr_in serv_addr = {
     .sin_family = AF_INET,
@@ -51,25 +56,10 @@ init_server ()
   };
 
   int reuse = 1;
-  if (setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse))
-      < 0)
-    {
-      log_event ("SO_REUSEADDR failed");
-      fprintf (stderr, "[Error] SO_REUSEADDR failed: %s \n", strerror (errno));
-    }
-
-  if (bind (server_fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr)) != 0)
-    {
-      log_event ("Failed to bind");
-      fprintf (stderr, "[Error] Failed to bind: %s\n", strerror (errno));
-      return;
-    }
-  if (listen (server_fd, MAX_CLIENTS) < 0)
-    {
-      log_event ("Failed to listen");
-      fprintf (stderr, "[Error] Failed to listen: %s\n", strerror (errno));
-      return;
-    }
+  check_connection(setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse)),"SO_REUSEADDR failed");
+  check_connection(bind (server_fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr)),"Failed to bind");
+  check_connection(listen (server_fd, MAX_CLIENTS),"Failed to listen");
+  
   log_event ("Server initialized and listening...");
   printf ("Server created with fd %d\n", server_fd);
 }
