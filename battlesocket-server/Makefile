@@ -17,12 +17,12 @@ $(TARGET): $(OBJ)
 %.o: %.c
 	$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
 
-memcheck: $(OBJ)
+memcheck.out: $(OBJ)
 	$(CC) $(ASANFLAGS) $(CFLAGS) -o $@ $^
 	./$@
 	@echo "Memory check passed"
 
 clean:
-	rm -f $(OBJ) $(TARGET)
+	rm -f $(OBJ) $(TARGET) *.out
 
 .PHONY: all clean
