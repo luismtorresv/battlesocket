@@ -1,5 +1,10 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -pthread
+
+CFLAGS  = -Wall
+CFLAGS += -Wextra
+CFLAGS += -pthread
+CFLAGS += -g
+
 INCLUDES = -I./include
 SRC = $(wildcard src/*.c)
 OBJ = $(SRC:.c=.o)
