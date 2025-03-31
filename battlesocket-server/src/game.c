@@ -197,7 +197,7 @@ get_ship_index_at (Board *board, int row, int col)
 void
 get_ship_data (Board *board, char *buffer, size_t buffer_size)
 {
-  char temp[256] = "";
+  char temp[BUFSIZ] = "";
   int counts[26] = { 0 }; // This is to count how many ships of each type,
                           // using the first letter of the name as a key
   for (int i = 0; i < board->ship_count; i++)

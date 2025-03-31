@@ -106,8 +106,8 @@ play_game ()
   log_event ("Game started...");
 
   int game_over = 0;
-  char recv_buffer[256];
-  char action_msg[256];
+  char recv_buffer[BUFSIZ];
+  char action_msg[BUFSIZ];
   while (!game_over)
     {
       memset (recv_buffer, 0, sizeof (recv_buffer));
@@ -174,7 +174,7 @@ play_game ()
       // Check if the other player still stands (˘･_･˘)
       if (is_game_over (&boards[1 - current_player]))
         {
-          char end_msg[256];
+          char end_msg[BUFSIZ];
           build_end_game (end_msg,
                           (char[]){ current_player == 0 ? 'A' : 'B', '\0' });
           broadcast (end_msg);
@@ -210,7 +210,7 @@ run_server ()
       client_count++;
       log_event ("New client connected");
       // Send JOINED_MATCHMAKING
-      char buffer[256];
+      char buffer[BUFSIZ];
       build_joined_matchmaking (buffer, clients[client_count - 1].letter);
       send_to_client (client_count - 1, buffer);
     }
