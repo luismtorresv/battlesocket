@@ -31,23 +31,30 @@ broadcast (const char *message)
     }
 }
 
-int check_connection(int value, const char *msg){
-  if (value < 0){
-    printf("Message: %s\n", msg);
-    log_event (msg);
-    perror("Error details");
-    return 1;
-  }
-  else{
-    return 0;
-  }
+int
+check_connection (int value, const char *msg)
+{
+  if (value < 0)
+    {
+      printf ("Message: %s\n", msg);
+      log_event (msg);
+      perror ("Error details");
+      return 1;
+    }
+  else
+    {
+      return 0;
+    }
 }
 
 void
 init_server ()
 {
 
-  if (check_connection(server_fd = socket (AF_INET, SOCK_STREAM, 0),"Failed to create socket")==1) return;
+  if (check_connection (server_fd = socket (AF_INET, SOCK_STREAM, 0),
+                        "Failed to create socket")
+      == 1)
+    return;
 
   struct sockaddr_in serv_addr = {
     .sin_family = AF_INET,
@@ -56,48 +63,27 @@ init_server ()
   };
 
   int reuse = 1;
-  if (check_connection(setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse)),"SO_REUSEADDR failed")==1) return;
-  if (check_connection(bind(server_fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr)),"Failed to bind")==1) return;
-  if (check_connection(listen(server_fd, MAX_CLIENTS),"Failed to listen")==1) return;
-  
+  if (check_connection (setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR,
+                                    &reuse, sizeof (reuse)),
+                        "SO_REUSEADDR failed")
+      == 1)
+    return;
+  if (check_connection (
+          bind (server_fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr)),
+          "Failed to bind")
+      == 1)
+    return;
+  if (check_connection (listen (server_fd, MAX_CLIENTS), "Failed to listen")
+      == 1)
+    return;
+
   log_event ("Server initialized and listening...");
   printf ("Server created with fd %d\n", server_fd);
 }
 
 void
-run_server ()
+play_game ()
 {
-
-  while (client_count < MAX_CLIENTS)
-    {
-      struct sockaddr_in client_addr;
-      socklen_t client_addr_len;
-      client_addr_len = sizeof (client_addr);
-
-      int new_socket = accept (server_fd, (struct sockaddr *)&client_addr,
-                               &client_addr_len);
-      if (new_socket < 0)
-        {
-          log_event ("Error accepting connection");
-          continue;
-        }
-      clients[client_count].sockfd = new_socket;
-      clients[client_count].addr = client_addr;
-      clients[client_count].letter = (client_count == 0) ? 'A' : 'B';
-      client_count++;
-      log_event ("New client connected");
-      // Send JOINED_MATCHMAKING
-      char buffer[256];
-      build_joined_matchmaking (buffer, clients[client_count - 1].letter);
-      send_to_client (client_count - 1, buffer);
-    }
-
-  for (int i = 0; i < MAX_CLIENTS; i++)
-    {
-      init_board (&boards[i]);
-      place_ships (&boards[i]);
-    }
-
   long start_time = time (NULL) + 5;
   srand (time (NULL));
   int current_player = rand () % 2;
@@ -199,6 +185,43 @@ run_server ()
       // Player turn change
       current_player = 1 - current_player;
     }
+}
+
+void
+run_server ()
+{
+
+  while (client_count < MAX_CLIENTS)
+    {
+      struct sockaddr_in client_addr;
+      socklen_t client_addr_len;
+      client_addr_len = sizeof (client_addr);
+
+      int new_socket = accept (server_fd, (struct sockaddr *)&client_addr,
+                               &client_addr_len);
+      if (new_socket < 0)
+        {
+          log_event ("Error accepting connection");
+          continue;
+        }
+      clients[client_count].sockfd = new_socket;
+      clients[client_count].addr = client_addr;
+      clients[client_count].letter = (client_count == 0) ? 'A' : 'B';
+      client_count++;
+      log_event ("New client connected");
+      // Send JOINED_MATCHMAKING
+      char buffer[256];
+      build_joined_matchmaking (buffer, clients[client_count - 1].letter);
+      send_to_client (client_count - 1, buffer);
+    }
+
+  for (int i = 0; i < MAX_CLIENTS; i++)
+    {
+      init_board (&boards[i]);
+      place_ships (&boards[i]);
+    }
+
+  play_game ();
 
   for (int i = 0; i < MAX_CLIENTS; i++)
     {
