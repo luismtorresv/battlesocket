@@ -4,10 +4,14 @@
 int
 main ()
 {
+  // Initialisation.
   init_logger ();
-  init_server ();
+
+  // Actual program.
   run_server ();
-  cleanup_server ();
+
+  // Unloading.
   close_logger ();
+
   return 0;
 }

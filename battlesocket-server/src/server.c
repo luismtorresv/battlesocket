@@ -50,7 +50,6 @@ check_connection (int value, const char *msg)
 void
 init_server ()
 {
-
   if (check_connection (server_fd = socket (AF_INET, SOCK_STREAM, 0),
                         "Failed to create socket")
       == 1)
@@ -185,11 +184,14 @@ play_game ()
       // Player turn change
       current_player = 1 - current_player;
     }
+
+  cleanup_server ();
 }
 
 void
 run_server ()
 {
+  init_server ();
 
   while (client_count < MAX_CLIENTS)
     {
@@ -222,16 +224,15 @@ run_server ()
     }
 
   play_game ();
-
-  for (int i = 0; i < MAX_CLIENTS; i++)
-    {
-      close (clients[i].sockfd);
-    }
 }
 
 void
 cleanup_server ()
 {
   close (server_fd);
+  for (int i = 0; i < MAX_CLIENTS; i++)
+    {
+      close (clients[i].sockfd);
+    }
   log_event ("Server closed");
 }
