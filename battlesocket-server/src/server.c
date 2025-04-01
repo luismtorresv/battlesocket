@@ -26,34 +26,29 @@ typedef struct Room Room;
 struct Room
 {
   size_t id;
-  Client *client_a;
-  Client *client_b;
+  Client client_a;
+  Client client_b;
   time_t start_time;
   bool is_available;
   Game game;
 };
 
 int server_fd;
-Client clients[MAX_CLIENTS];
-int client_count = 0;
-Board boards[MAX_CLIENTS]; // Boards for each player ( ͡~ ͜ʖ ͡°)
 Room rooms[NUMBER_OF_ROOMS] = { 0 };
 Room *single_room = &rooms[0];
 
 void
-send_to_client (int client_index, const char *message)
+send_to_client (Client *client, const char *message)
 {
-  send (clients[client_index].sockfd, message, strlen (message), 0);
+  send (client->sockfd, message, strlen (message), 0);
 }
 
 // Juan Carlos: "Broadca'ting"
 void
-broadcast (const char *message)
+broadcast (const char *message, Room *room)
 {
-  for (int i = 0; i < client_count; i++)
-    {
-      send_to_client (i, message);
-    }
+  send_to_client (&room->client_a, message);
+  send_to_client (&room->client_b, message);
 }
 
 int
@@ -139,6 +134,34 @@ get_opposing_board (Game *game)
     }
 }
 
+int
+get_current_socket_fd (Room *room)
+{
+  switch (room->game.current_player)
+    {
+    case PLAYER_A:
+      return room->client_a.sockfd;
+    case PLAYER_B:
+      return room->client_b.sockfd;
+    default:
+      return -1;
+    }
+}
+
+Client *
+get_current_client (Room *room)
+{
+  switch (room->game.current_player)
+    {
+    case PLAYER_A:
+      return &room->client_a;
+    case PLAYER_B:
+      return &room->client_b;
+    default:
+      return NULL;
+    }
+}
+
 void
 play_game ()
 {
@@ -152,12 +175,14 @@ play_game ()
       char ship_data[1024] = "";
       Board *board
           = (i == 0) ? &single_room->game.board_a : &single_room->game.board_b;
+      Client *client
+          = (i == 0) ? &single_room->client_a : &single_room->client_b;
       get_ship_data (board, ship_data, sizeof (ship_data));
       char start_msg[2048] = "";
       // "START_GAME|<unix_time> <initial_player> <ship_data>\n"
       build_start_game (start_msg, start_time,
                         single_room->game.current_player, ship_data);
-      send_to_client (i, start_msg);
+      send_to_client (client, start_msg);
       log_event (start_msg);
     }
 
@@ -169,9 +194,7 @@ play_game ()
   while (!game_over)
     {
       memset (recv_buffer, 0, sizeof (recv_buffer));
-      int current_player
-          = (single_room->game.current_player == PLAYER_A) ? 0 : 1;
-      int bytes_read = recv (clients[current_player].sockfd, recv_buffer,
+      int bytes_read = recv (get_current_socket_fd (single_room), recv_buffer,
                              sizeof (recv_buffer) - 1, 0);
       if (bytes_read <= 0)
         {
@@ -184,7 +207,7 @@ play_game ()
       log_event ("Player message recieved");
       if (parse_message (recv_buffer) != MSG_SHOT)
         {
-          send_to_client (current_player, "BAD_REQUEST|\n");
+          send_to_client (get_current_client (single_room), "BAD_REQUEST|\n");
           continue;
         }
 
@@ -192,7 +215,7 @@ play_game ()
       char *separator = strchr (recv_buffer, '|');
       if (separator == NULL)
         {
-          send_to_client (current_player, "BAD_REQUEST|\n");
+          send_to_client (get_current_client (single_room), "BAD_REQUEST|\n");
           continue;
         }
       char pos[16] = { 0 };
@@ -200,7 +223,7 @@ play_game ()
 
       if (pos[0] < 'A' || pos[0] > 'J' || pos[1] != '-')
         {
-          send_to_client (current_player, "BAD_REQUEST|\n");
+          send_to_client (get_current_client (single_room), "BAD_REQUEST|\n");
           continue;
         }
       char row_char = pos[0];
@@ -225,27 +248,28 @@ play_game ()
         }
 
       const char *result = hit ? "HIT" : "MISS";
-      char next_player = current_player == 0 ? 'B' : 'A';
-
       memset (action_msg, 0, sizeof (action_msg));
       build_action_result (action_msg, result, pos, sunk,
-                           (char[]){ next_player, '\0' });
-      broadcast (action_msg);
+                           single_room->game.current_player);
+      broadcast (action_msg, single_room);
       log_event ("Action message sent");
 
       // Check if the other player still stands (˘･_･˘)
       if (is_game_over (get_opposing_board (&single_room->game)))
         {
           char end_msg[BUFSIZ];
-          build_end_game (end_msg,
-                          (char[]){ current_player == 0 ? 'A' : 'B', '\0' });
-          broadcast (end_msg);
+          build_end_game (end_msg, single_room->game.current_player == PLAYER_A
+                                       ? 'A'
+                                       : 'B');
+          broadcast (end_msg, single_room);
           game_over = 1;
           log_event ("Game over");
           break;
         }
       // Player turn change
-      current_player = 1 - current_player;
+      single_room->game.current_player
+          = (single_room->game.current_player == PLAYER_A) ? PLAYER_B
+                                                           : PLAYER_A;
     }
 
   cleanup_server ();
@@ -256,8 +280,14 @@ run_server ()
 {
   init_server ();
 
-  while (client_count < MAX_CLIENTS)
+  // First client to connect.
+  bool is_client_a = true;
+  Client *client = &single_room->client_a;
+  while (single_room->client_a.sockfd == 0
+         || single_room->client_b.sockfd == 0)
     {
+      if (!is_client_a)
+        client = &single_room->client_b;
       struct sockaddr_in client_addr;
       socklen_t client_addr_len;
       client_addr_len = sizeof (client_addr);
@@ -269,23 +299,19 @@ run_server ()
           log_event ("Error accepting connection");
           continue;
         }
-      clients[client_count].sockfd = new_socket;
-      clients[client_count].addr = client_addr;
-      clients[client_count].letter = (client_count == 0) ? 'A' : 'B';
-      client_count++;
+
+      client->sockfd = new_socket;
+      client->addr = client_addr;
       log_event ("New client connected");
+
       // Send JOINED_MATCHMAKING
       char buffer[BUFSIZ];
-      build_joined_matchmaking (buffer, clients[client_count - 1].letter);
-      send_to_client (client_count - 1, buffer);
-
-      if (!single_room->client_a)
-        single_room->client_a = &clients[client_count];
-      else
-        single_room->client_b = &clients[client_count];
+      build_joined_matchmaking (buffer, is_client_a ? 'A' : 'B');
+      send_to_client (client, buffer);
 
       single_room->is_available = false;
       single_room->is_available = time (NULL);
+      is_client_a = false;
     }
 
   // Initialising the game for the single room.
@@ -302,9 +328,9 @@ void
 cleanup_server ()
 {
   close (server_fd);
-  for (int i = 0; i < MAX_CLIENTS; i++)
-    {
-      close (clients[i].sockfd);
-    }
+
+  // TODO: Close all sockets of all rooms.
+  close (single_room->client_a.sockfd);
+  close (single_room->client_b.sockfd);
   log_event ("Server closed");
 }

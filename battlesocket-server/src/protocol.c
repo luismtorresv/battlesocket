@@ -27,12 +27,11 @@ build_joined_matchmaking (char *buffer, char letter)
 
 void
 build_action_result (char *buffer, const char *result, const char *pos,
-                     int sunk, const char *next_player)
+                     int sunk, const Player current_player)
 {
-  if (sunk)
-    sprintf (buffer, "%s|%s SUNK %s\n", result, pos, next_player);
-  else
-    sprintf (buffer, "%s|%s %s\n", result, pos, next_player);
+  char next_player = current_player == PLAYER_A ? 'B' : 'A';
+  char *format = sunk ? "%s|%s SUNK %c\n" : "%s|%s %c\n";
+  sprintf (buffer, format, result, pos, next_player);
 }
 
 void
@@ -42,7 +41,7 @@ build_shot (char *buffer, const char *pos)
 }
 
 void
-build_end_game (char *buffer, const char *winner)
+build_end_game (char *buffer, const char winner)
 {
-  sprintf (buffer, "END_GAME|%s\n", winner);
+  sprintf (buffer, "END_GAME|%c\n", winner);
 }
