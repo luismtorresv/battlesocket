@@ -1,19 +1,44 @@
 #include "server.h"
+#include "common.h"
 #include "game.h"
 #include "logger.h"
 #include "protocol.h"
 #include <arpa/inet.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
 
+#define NUMBER_OF_ROOMS 1024
+
+typedef struct Game Game;
+struct Game
+{
+  Board board_a;
+  Board board_b;
+  Player current_player;
+};
+
+typedef struct Room Room;
+struct Room
+{
+  size_t id;
+  Client *client_a;
+  Client *client_b;
+  time_t start_time;
+  bool is_available;
+  Game game;
+};
+
 int server_fd;
 Client clients[MAX_CLIENTS];
 int client_count = 0;
 Board boards[MAX_CLIENTS]; // Boards for each player ( ͡~ ͜ʖ ͡°)
+Room rooms[NUMBER_OF_ROOMS] = { 0 };
+Room *single_room = &rooms[0];
 
 void
 send_to_client (int client_index, const char *message)
@@ -80,24 +105,58 @@ init_server ()
   printf ("Server created with fd %d\n", server_fd);
 }
 
+Board *
+get_board (Game *game, Player *player)
+{
+  switch (*player)
+    {
+    case PLAYER_A:
+      return &game->board_a;
+    case PLAYER_B:
+      return &game->board_b;
+    default:
+      return NULL;
+    }
+}
+
+Board *
+get_current_board (Game *game)
+{
+  return get_board (game, &game->current_player);
+}
+
+Board *
+get_opposing_board (Game *game)
+{
+  switch (game->current_player)
+    {
+    case PLAYER_A:
+      return &game->board_b;
+    case PLAYER_B:
+      return &game->board_a;
+    default:
+      return NULL;
+    }
+}
+
 void
 play_game ()
 {
   long start_time = time (NULL) + 5;
   srand (time (NULL));
-  int current_player = rand () % 2;
-  char initial_player[2];
-  initial_player[0] = (current_player == 0) ? 'A' : 'B';
-  initial_player[1] = '\0';
+  single_room->game.current_player = (rand () % 2 == 0) ? PLAYER_A : PLAYER_B;
 
   // Send to each client the START_GAME with their boards
   for (int i = 0; i < MAX_CLIENTS; i++)
     {
       char ship_data[1024] = "";
-      get_ship_data (&boards[i], ship_data, sizeof (ship_data));
+      Board *board
+          = (i == 0) ? &single_room->game.board_a : &single_room->game.board_b;
+      get_ship_data (board, ship_data, sizeof (ship_data));
       char start_msg[2048] = "";
       // "START_GAME|<unix_time> <initial_player> <ship_data>\n"
-      build_start_game (start_msg, start_time, initial_player, ship_data);
+      build_start_game (start_msg, start_time,
+                        single_room->game.current_player, ship_data);
       send_to_client (i, start_msg);
       log_event (start_msg);
     }
@@ -110,6 +169,8 @@ play_game ()
   while (!game_over)
     {
       memset (recv_buffer, 0, sizeof (recv_buffer));
+      int current_player
+          = (single_room->game.current_player == PLAYER_A) ? 0 : 1;
       int bytes_read = recv (clients[current_player].sockfd, recv_buffer,
                              sizeof (recv_buffer) - 1, 0);
       if (bytes_read <= 0)
@@ -149,16 +210,18 @@ play_game ()
       log_event ("Processing shot...");
 
       // The shot happens in the board of the opposing player
-      int hit = validate_shot (&boards[1 - current_player], row, col);
-      update_board (&boards[1 - current_player], row, col, hit);
+      int hit
+          = validate_shot (get_opposing_board (&single_room->game), row, col);
+      update_board (get_opposing_board (&single_room->game), row, col, hit);
 
       int sunk = 0;
       if (hit)
         {
-          int ship_index
-              = get_ship_index_at (&boards[1 - current_player], row, col);
+          int ship_index = get_ship_index_at (
+              get_opposing_board (&single_room->game), row, col);
           if (ship_index != -1)
-            sunk = is_ship_sunk (&boards[1 - current_player], ship_index);
+            sunk = is_ship_sunk (get_opposing_board (&single_room->game),
+                                 ship_index);
         }
 
       const char *result = hit ? "HIT" : "MISS";
@@ -171,7 +234,7 @@ play_game ()
       log_event ("Action message sent");
 
       // Check if the other player still stands (˘･_･˘)
-      if (is_game_over (&boards[1 - current_player]))
+      if (is_game_over (get_opposing_board (&single_room->game)))
         {
           char end_msg[BUFSIZ];
           build_end_game (end_msg,
@@ -215,13 +278,22 @@ run_server ()
       char buffer[BUFSIZ];
       build_joined_matchmaking (buffer, clients[client_count - 1].letter);
       send_to_client (client_count - 1, buffer);
+
+      if (!single_room->client_a)
+        single_room->client_a = &clients[client_count];
+      else
+        single_room->client_b = &clients[client_count];
+
+      single_room->is_available = false;
+      single_room->is_available = time (NULL);
     }
 
-  for (int i = 0; i < MAX_CLIENTS; i++)
-    {
-      init_board (&boards[i]);
-      place_ships (&boards[i]);
-    }
+  // Initialising the game for the single room.
+  // This is supposed to be done for every match.
+  init_board (&single_room->game.board_a);
+  init_board (&single_room->game.board_b);
+  place_ships (&single_room->game.board_a);
+  place_ships (&single_room->game.board_b);
 
   play_game ();
 }

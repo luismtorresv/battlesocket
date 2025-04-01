@@ -1,4 +1,5 @@
 #include "protocol.h"
+#include "common.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -11,11 +12,11 @@ parse_message (const char *msg)
 }
 
 void
-build_start_game (char *buffer, long unix_time, const char *initial_player,
+build_start_game (char *buffer, long unix_time, Player initial_player,
                   const char *ship_data)
 {
-  sprintf (buffer, "START_GAME|%ld %s %s\n", unix_time, initial_player,
-           ship_data);
+  sprintf (buffer, "START_GAME|%ld %c %s\n", unix_time,
+           (initial_player == PLAYER_A) ? 'A' : 'B', ship_data);
 }
 
 void

@@ -1,6 +1,8 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
+#include "common.h"
+
 typedef enum
 {
   MSG_START_GAME,
@@ -13,7 +15,7 @@ typedef enum
 
 MsgType parse_message (const char *msg);
 void build_start_game (char *buffer, long unix_time,
-                       const char *initial_player, const char *ship_data);
+                       Player initial_player, const char *ship_data);
 void build_joined_matchmaking (char *buffer, char letter);
 void build_action_result (char *buffer, const char *result, const char *pos,
                           int sunk, const char *next_player);
