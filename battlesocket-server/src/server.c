@@ -246,7 +246,7 @@ play_game (int server_fd)
 
   log_event ("Game started...");
 
-  int game_over = 0;
+  bool game_over = false;
   char recv_buffer[BUFSIZ];
   while (!game_over)
     {
@@ -272,7 +272,7 @@ play_game (int server_fd)
                                        ? 'A'
                                        : 'B');
           broadcast (end_msg, single_room);
-          game_over = 1;
+          game_over = true;
           log_event ("Game over");
           break;
         }
