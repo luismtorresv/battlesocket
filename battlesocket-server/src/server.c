@@ -168,6 +168,59 @@ get_current_client (Room *room)
 }
 
 void
+handle_message (const char *message)
+{
+  if (parse_message (message) != MSG_SHOT)
+    {
+      send_to_client (get_current_client (single_room), "BAD_REQUEST|\n");
+      return;
+    }
+
+  // We expect a message like "SHOT|A-1"
+  char *separator = strchr (message, '|');
+  if (separator == NULL)
+    {
+      send_to_client (get_current_client (single_room), "BAD_REQUEST|\n");
+      return;
+    }
+  char pos[16] = { 0 };
+  strncpy (pos, separator + 1, sizeof (pos) - 1);
+
+  if (pos[0] < 'A' || pos[0] > 'J' || pos[1] != '-')
+    {
+      send_to_client (get_current_client (single_room), "BAD_REQUEST|\n");
+      return;
+    }
+  char row_char = pos[0];
+  int row = row_char - 'A';
+  int col = atoi (pos + 2) - 1;
+
+  log_event ("Processing shot...");
+
+  // The shot happens in the board of the opposing player
+  int hit = validate_shot (get_opposing_board (&single_room->game), row, col);
+  update_board (get_opposing_board (&single_room->game), row, col, hit);
+
+  int sunk = 0;
+  if (hit)
+    {
+      int ship_index = get_ship_index_at (
+          get_opposing_board (&single_room->game), row, col);
+      if (ship_index != -1)
+        sunk = is_ship_sunk (get_opposing_board (&single_room->game),
+                             ship_index);
+    }
+
+  const char *result = hit ? "HIT" : "MISS";
+  char action_msg[BUFSIZ];
+  memset (action_msg, 0, sizeof (action_msg));
+  build_action_result (action_msg, result, pos, sunk,
+                       single_room->game.current_player);
+  broadcast (action_msg, single_room);
+  log_event ("Action message sent");
+}
+
+void
 play_game (int server_fd)
 {
   long start_time = time (NULL) + 5;
@@ -195,7 +248,6 @@ play_game (int server_fd)
 
   int game_over = 0;
   char recv_buffer[BUFSIZ];
-  char action_msg[BUFSIZ];
   while (!game_over)
     {
       memset (recv_buffer, 0, sizeof (recv_buffer));
@@ -210,54 +262,7 @@ play_game (int server_fd)
       recv_buffer[newline_pos] = '\0';
 
       log_event ("Player message received");
-      if (parse_message (recv_buffer) != MSG_SHOT)
-        {
-          send_to_client (get_current_client (single_room), "BAD_REQUEST|\n");
-          continue;
-        }
-
-      // We expect a message like "SHOT|A-1"
-      char *separator = strchr (recv_buffer, '|');
-      if (separator == NULL)
-        {
-          send_to_client (get_current_client (single_room), "BAD_REQUEST|\n");
-          continue;
-        }
-      char pos[16] = { 0 };
-      strncpy (pos, separator + 1, sizeof (pos) - 1);
-
-      if (pos[0] < 'A' || pos[0] > 'J' || pos[1] != '-')
-        {
-          send_to_client (get_current_client (single_room), "BAD_REQUEST|\n");
-          continue;
-        }
-      char row_char = pos[0];
-      int row = row_char - 'A';
-      int col = atoi (pos + 2) - 1;
-
-      log_event ("Processing shot...");
-
-      // The shot happens in the board of the opposing player
-      int hit
-          = validate_shot (get_opposing_board (&single_room->game), row, col);
-      update_board (get_opposing_board (&single_room->game), row, col, hit);
-
-      int sunk = 0;
-      if (hit)
-        {
-          int ship_index = get_ship_index_at (
-              get_opposing_board (&single_room->game), row, col);
-          if (ship_index != -1)
-            sunk = is_ship_sunk (get_opposing_board (&single_room->game),
-                                 ship_index);
-        }
-
-      const char *result = hit ? "HIT" : "MISS";
-      memset (action_msg, 0, sizeof (action_msg));
-      build_action_result (action_msg, result, pos, sunk,
-                           single_room->game.current_player);
-      broadcast (action_msg, single_room);
-      log_event ("Action message sent");
+      handle_message (recv_buffer);
 
       // Check if the other player still stands (˘･_･˘)
       if (is_game_over (get_opposing_board (&single_room->game)))
