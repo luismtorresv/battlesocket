@@ -6,6 +6,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <netinet/in.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -220,12 +221,22 @@ handle_message (const char *message)
   log_event ("Action message sent");
 }
 
+// Decides starting player using the stdlib's random number generator.
 void
-play_game (int server_fd)
+choose_starting_player (Room *room)
 {
-  long start_time = time (NULL) + 5;
-  srand (time (NULL));
-  single_room->game.current_player = (rand () % 2 == 0) ? PLAYER_A : PLAYER_B;
+  srand (time (NULL)); // Set seed using current time.
+  // If the number it's even, A goes first.
+  room->game.current_player = (rand () % 2 == 0) ? PLAYER_A : PLAYER_B;
+}
+
+void
+init_game ()
+{
+  const long int START_GAME_DELAY = 5; // Units: seconds.
+  long start_time = time (NULL) + START_GAME_DELAY;
+
+  choose_starting_player (single_room);
 
   // Send to each client the START_GAME with their boards
   for (int i = 0; i < MAX_CLIENTS; i++)
@@ -243,8 +254,13 @@ play_game (int server_fd)
       send_to_client (client, start_msg);
       log_event (start_msg);
     }
-
   log_event ("Game started...");
+}
+
+void
+play_game (int server_fd)
+{
+  init_game ();
 
   char recv_buffer[BUFSIZ];
   while (!is_game_over (get_opposing_board (&single_room->game)))
