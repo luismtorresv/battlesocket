@@ -33,7 +33,6 @@ struct Room
   Game game;
 };
 
-int server_fd;
 Room rooms[NUMBER_OF_ROOMS] = { 0 };
 Room *single_room = &rooms[0];
 
@@ -67,13 +66,14 @@ check_connection (int value, const char *msg)
     }
 }
 
-void
+int
 init_server ()
 {
+  int server_fd;
   if (check_connection (server_fd = socket (AF_INET, SOCK_STREAM, 0),
                         "Failed to create socket")
       == 1)
-    return;
+    return -1;
 
   struct sockaddr_in serv_addr = {
     .sin_family = AF_INET,
@@ -86,18 +86,19 @@ init_server ()
                                     &reuse, sizeof (reuse)),
                         "SO_REUSEADDR failed")
       == 1)
-    return;
+    return -1;
   if (check_connection (
           bind (server_fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr)),
           "Failed to bind")
       == 1)
-    return;
+    return -1;
   if (check_connection (listen (server_fd, MAX_CLIENTS), "Failed to listen")
       == 1)
-    return;
+    return -1;
 
   log_event ("Server initialized and listening...");
   printf ("Server created with fd %d\n", server_fd);
+  return server_fd;
 }
 
 Board *
@@ -163,7 +164,7 @@ get_current_client (Room *room)
 }
 
 void
-play_game ()
+play_game (int server_fd)
 {
   long start_time = time (NULL) + 5;
   srand (time (NULL));
@@ -272,13 +273,13 @@ play_game ()
                                                            : PLAYER_A;
     }
 
-  cleanup_server ();
+  cleanup_server (server_fd);
 }
 
 void
 run_server ()
 {
-  init_server ();
+  int server_fd = init_server ();
 
   // First client to connect.
   bool is_client_a = true;
@@ -321,11 +322,11 @@ run_server ()
   place_ships (&single_room->game.board_a);
   place_ships (&single_room->game.board_b);
 
-  play_game ();
+  play_game (server_fd);
 }
 
 void
-cleanup_server ()
+cleanup_server (int server_fd)
 {
   close (server_fd);
 
