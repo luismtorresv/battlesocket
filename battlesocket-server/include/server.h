@@ -12,7 +12,6 @@ typedef struct
   struct sockaddr_in addr;
 } Client;
 
-int check_connection (int value, const char *msg);
 int init_server ();
 void run_server ();
 void cleanup_server (int server_fd);

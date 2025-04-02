@@ -51,29 +51,14 @@ broadcast (const char *message, Room *room)
 }
 
 int
-check_connection (int value, const char *msg)
-{
-  if (value < 0)
-    {
-      printf ("Message: %s\n", msg);
-      log_event (msg);
-      perror ("Error details");
-      return 1;
-    }
-  else
-    {
-      return 0;
-    }
-}
-
-int
 init_server ()
 {
   int server_fd;
-  if (check_connection (server_fd = socket (AF_INET, SOCK_STREAM, 0),
-                        "Failed to create socket")
-      == 1)
-    return -1;
+  if ((server_fd = socket (AF_INET, SOCK_STREAM, 0)) == -1)
+    {
+      fprintf (stderr, "[Error] Failed to create socket.\n");
+      exit (1);
+    }
 
   struct sockaddr_in serv_addr = {
     .sin_family = AF_INET,
@@ -82,19 +67,25 @@ init_server ()
   };
 
   int reuse = 1;
-  if (check_connection (setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR,
-                                    &reuse, sizeof (reuse)),
-                        "SO_REUSEADDR failed")
-      == 1)
-    return -1;
-  if (check_connection (
-          bind (server_fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr)),
-          "Failed to bind")
-      == 1)
-    return -1;
-  if (check_connection (listen (server_fd, MAX_CLIENTS), "Failed to listen")
-      == 1)
-    return -1;
+  if (setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse))
+      == -1)
+    {
+      fprintf (stderr, "[Error] Failed to set SO_REUSEADDR.\n");
+      exit (1);
+    }
+
+  if (bind (server_fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr))
+      == -1)
+    {
+      fprintf (stderr, "[Error] Failed to bind.\n");
+      exit (1);
+    }
+
+  if (listen (server_fd, MAX_CLIENTS) == -1)
+    {
+      fprintf (stderr, "[Error] Failed to listen.\n");
+      exit (1);
+    }
 
   log_event ("Server initialized and listening...");
   printf ("Server created with fd %d\n", server_fd);
