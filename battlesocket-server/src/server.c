@@ -203,13 +203,13 @@ play_game (int server_fd)
                              sizeof (recv_buffer) - 1, 0);
       if (bytes_read <= 0)
         {
-          log_event ("Failed recieving data or client disconnection");
+          log_event ("Failed receiving data or client disconnection");
           break;
         }
       int newline_pos = strcspn (recv_buffer, "\r\n");
       recv_buffer[newline_pos] = '\0';
 
-      log_event ("Player message recieved");
+      log_event ("Player message received");
       if (parse_message (recv_buffer) != MSG_SHOT)
         {
           send_to_client (get_current_client (single_room), "BAD_REQUEST|\n");
