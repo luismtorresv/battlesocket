@@ -246,9 +246,8 @@ play_game (int server_fd)
 
   log_event ("Game started...");
 
-  bool game_over = false;
   char recv_buffer[BUFSIZ];
-  while (!game_over)
+  while (!is_game_over (get_opposing_board (&single_room->game)))
     {
       memset (recv_buffer, 0, sizeof (recv_buffer));
       int bytes_read = recv (get_current_socket_fd (single_room), recv_buffer,
@@ -264,22 +263,20 @@ play_game (int server_fd)
       log_event ("Player message received");
       handle_message (recv_buffer);
 
-      // Check if the other player still stands (˘･_･˘)
-      if (is_game_over (get_opposing_board (&single_room->game)))
-        {
-          char end_msg[BUFSIZ];
-          build_end_game (end_msg, single_room->game.current_player == PLAYER_A
-                                       ? 'A'
-                                       : 'B');
-          broadcast (end_msg, single_room);
-          game_over = true;
-          log_event ("Game over");
-          break;
-        }
       // Player turn change
       single_room->game.current_player
           = (single_room->game.current_player == PLAYER_A) ? PLAYER_B
                                                            : PLAYER_A;
+    }
+
+  // Game over.
+  if (is_game_over (get_opposing_board (&single_room->game)))
+    {
+      char end_msg[BUFSIZ];
+      build_end_game (
+          end_msg, single_room->game.current_player == PLAYER_A ? 'A' : 'B');
+      broadcast (end_msg, single_room);
+      log_event ("Game over");
     }
 
   cleanup_server (server_fd);
