@@ -5,6 +5,7 @@
 #include "protocol.h"
 #include <arpa/inet.h>
 #include <errno.h>
+#include <netinet/in.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,6 +14,14 @@
 #include <unistd.h>
 
 #define NUMBER_OF_ROOMS 1024
+#define SERVER_PORT 8080
+#define MAX_CLIENTS 2
+
+typedef struct
+{
+  int sockfd;
+  struct sockaddr_in addr;
+} Client;
 
 typedef struct Game Game;
 struct Game
@@ -32,6 +41,10 @@ struct Room
   bool is_available;
   Game game;
 };
+
+// Local function declarations.
+int init_server ();
+void cleanup_server (int server_fd);
 
 Room rooms[NUMBER_OF_ROOMS] = { 0 };
 Room *single_room = &rooms[0];
