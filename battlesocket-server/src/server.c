@@ -232,19 +232,18 @@ Player
 choose_starting_player (Room *room)
 {
   srand (time (NULL)); // Set seed using current time.
-  Player initial_player = room->game.current_player
-      = (rand () % 2 == 0)
-            ? PLAYER_A
-            : PLAYER_B; // If the number it's even, A goes first.
-  return initial_player;
+  return (room->game.current_player
+          = (rand () % 2 == 0)
+                ? PLAYER_A
+                : PLAYER_B); // If the number it's even, A goes first.
 }
 
 void
-send_start_game (Room *room, Player player, long start_time,
-                 Player initial_player)
+send_start_game (Room *room, Player player, long start_time)
 {
   Board *board = get_board (&room->game, player);
   Client *client = get_client (room, player);
+  Player initial_player = single_room->game.current_player;
 
   char ship_data[BUFSIZ] = { 0 };
   get_ship_data (board, ship_data, sizeof (ship_data));
@@ -261,11 +260,11 @@ init_game ()
   const long int START_GAME_DELAY = 5; // Units: seconds.
   long start_time = time (NULL) + START_GAME_DELAY;
 
-  Player initial_player = choose_starting_player (single_room);
+  choose_starting_player (single_room);
 
   // Send to each client the START_GAME with their boards
-  send_start_game (single_room, PLAYER_A, start_time, initial_player);
-  send_start_game (single_room, PLAYER_B, start_time, initial_player);
+  send_start_game (single_room, PLAYER_A, start_time);
+  send_start_game (single_room, PLAYER_B, start_time);
 
   log_event ("[INFO] Game started.");
 }
