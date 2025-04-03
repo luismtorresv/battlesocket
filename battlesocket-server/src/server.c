@@ -281,11 +281,17 @@ play_game (int server_fd)
       memset (recv_buffer, 0, sizeof (recv_buffer));
       int bytes_read = recv (get_current_socket_fd (single_room), recv_buffer,
                              sizeof (recv_buffer) - 1, 0);
-      if (bytes_read <= 0)
+      if (bytes_read == 0)
         {
-          log_event ("Failed receiving data or client disconnection");
+          log_event ("[ERROR] Client disconnection.");
           break;
         }
+      else if (bytes_read == 1)
+        {
+          log_event ("[ERROR] Failed to recv data.");
+          break;
+        }
+
       int newline_pos = strcspn (recv_buffer, "\r\n");
       recv_buffer[newline_pos] = '\0';
 
