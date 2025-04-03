@@ -51,6 +51,7 @@ int init_server ();
 void cleanup_server (int server_fd);
 
 Room rooms[NUMBER_OF_ROOMS] = { 0 };
+pthread_mutex_t room_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void
 send_to_client (Client *client, const char *message)
