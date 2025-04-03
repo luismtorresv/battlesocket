@@ -41,7 +41,6 @@ struct Room
   size_t id;
   Client client_a;
   Client client_b;
-  time_t start_time;
   bool is_available;
   Game game;
 };
@@ -271,7 +270,6 @@ handle_client (void *arg)
     }
 
   rooms[room_index].is_available = false;
-  rooms[room_index].start_time = time (NULL);
 
   // After second client joins.
   init_game (&rooms[room_index]);
