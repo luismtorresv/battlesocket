@@ -51,7 +51,6 @@ int init_server ();
 void cleanup_server (int server_fd);
 
 Room rooms[NUMBER_OF_ROOMS] = { 0 };
-Room *single_room = &rooms[0];
 
 void
 send_to_client (Client *client, const char *message)
@@ -65,48 +64,6 @@ broadcast (const char *message, Room *room)
 {
   send_to_client (&room->client_a, message);
   send_to_client (&room->client_b, message);
-}
-
-int
-init_server ()
-{
-  int server_fd;
-  if ((server_fd = socket (AF_INET, SOCK_STREAM, 0)) == -1)
-    {
-      fprintf (stderr, "[Error] Failed to create socket.\n");
-      exit (1);
-    }
-
-  struct sockaddr_in serv_addr = {
-    .sin_family = AF_INET,
-    .sin_port = htons (SERVER_PORT),
-    .sin_addr = { htonl (INADDR_ANY) },
-  };
-
-  int reuse = 1;
-  if (setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse))
-      == -1)
-    {
-      fprintf (stderr, "[Error] Failed to set SO_REUSEADDR.\n");
-      exit (1);
-    }
-
-  if (bind (server_fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr))
-      == -1)
-    {
-      fprintf (stderr, "[Error] Failed to bind.\n");
-      exit (1);
-    }
-
-  if (listen (server_fd, MAX_CLIENTS) == -1)
-    {
-      fprintf (stderr, "[Error] Failed to listen.\n");
-      exit (1);
-    }
-
-  log_event ("Server initialized and listening...");
-  printf ("Server created with fd %d\n", server_fd);
-  return server_fd;
 }
 
 Board *
@@ -178,11 +135,11 @@ get_current_client (Room *room)
 }
 
 void
-handle_message (const char *message)
+handle_message (Room *room, const char *message)
 {
   if (parse_message (message) != MSG_SHOT)
     {
-      send_to_client (get_current_client (single_room), "BAD_REQUEST|\n");
+      send_to_client (get_current_client (room), "BAD_REQUEST|\n");
       return;
     }
 
@@ -190,7 +147,7 @@ handle_message (const char *message)
   char *separator = strchr (message, '|');
   if (separator == NULL)
     {
-      send_to_client (get_current_client (single_room), "BAD_REQUEST|\n");
+      send_to_client (get_current_client (room), "BAD_REQUEST|\n");
       return;
     }
   char pos[16] = { 0 };
@@ -198,7 +155,7 @@ handle_message (const char *message)
 
   if (pos[0] < 'A' || pos[0] > 'J' || pos[1] != '-')
     {
-      send_to_client (get_current_client (single_room), "BAD_REQUEST|\n");
+      send_to_client (get_current_client (room), "BAD_REQUEST|\n");
       return;
     }
   char row_char = pos[0];
@@ -208,25 +165,24 @@ handle_message (const char *message)
   log_event ("Processing shot...");
 
   // The shot happens in the board of the opposing player
-  int hit = validate_shot (get_opposing_board (&single_room->game), row, col);
-  update_board (get_opposing_board (&single_room->game), row, col, hit);
+  int hit = validate_shot (get_opposing_board (&room->game), row, col);
+  update_board (get_opposing_board (&room->game), row, col, hit);
 
   int sunk = 0;
   if (hit)
     {
-      int ship_index = get_ship_index_at (
-          get_opposing_board (&single_room->game), row, col);
+      int ship_index
+          = get_ship_index_at (get_opposing_board (&room->game), row, col);
       if (ship_index != -1)
-        sunk = is_ship_sunk (get_opposing_board (&single_room->game),
-                             ship_index);
+        sunk = is_ship_sunk (get_opposing_board (&room->game), ship_index);
     }
 
   const char *result = hit ? "HIT" : "MISS";
   char action_msg[BUFSIZ];
   memset (action_msg, 0, sizeof (action_msg));
   build_action_result (action_msg, result, pos, sunk,
-                       single_room->game.current_player);
-  broadcast (action_msg, single_room);
+                       room->game.current_player);
+  broadcast (action_msg, room);
   log_event ("Action message sent");
 }
 
@@ -246,7 +202,7 @@ send_start_game (Room *room, Player player, long start_time)
 {
   Board *board = get_board (&room->game, player);
   Client *client = get_client (room, player);
-  Player initial_player = single_room->game.current_player;
+  Player initial_player = room->game.current_player;
 
   char ship_data[BUFSIZ] = { 0 };
   get_ship_data (board, ship_data, sizeof (ship_data));
@@ -258,45 +214,72 @@ send_start_game (Room *room, Player player, long start_time)
 }
 
 void
-init_game ()
+init_game (Room *room)
 {
   // Initialising the game for the single room.
   // This is supposed to be done for every match.
-  init_board (&single_room->game.board_a);
-  init_board (&single_room->game.board_b);
-  place_ships (&single_room->game.board_a);
-  place_ships (&single_room->game.board_b);
+  init_board (&room->game.board_a);
+  init_board (&room->game.board_b);
+  place_ships (&room->game.board_a);
+  place_ships (&room->game.board_b);
 
   const long int START_GAME_DELAY = 5; // Units: seconds.
   long start_time = time (NULL) + START_GAME_DELAY;
 
-  choose_starting_player (single_room);
+  choose_starting_player (room);
 
   // Send to each client the START_GAME with their boards
-  send_start_game (single_room, PLAYER_A, start_time);
-  send_start_game (single_room, PLAYER_B, start_time);
+  send_start_game (room, PLAYER_A, start_time);
+  send_start_game (room, PLAYER_B, start_time);
 
   log_event ("[INFO] Game started.");
 }
 
-void
-handle_client (Client client, bool is_client_a)
+void *
+handle_client (void *arg)
 {
+  Client client = *(Client *)arg;
+  free (arg);
+
+  int room_index = -1;
+
+  // Search for an available room.
+  for (int i = 0; i < NUMBER_OF_ROOMS; ++i)
+    {
+      if (rooms[i].is_available)
+        {
+          // Is first client unassigned?
+          if (!rooms[i].client_a.sockfd)
+            rooms[i].client_a = client;
+          else
+            rooms[i].client_b = client;
+          room_index = i;
+          break;
+        }
+    }
+
   // Send JOINED_MATCHMAKING
+  log_event ("New client connected");
   char buffer[BUFSIZ];
-  build_joined_matchmaking (buffer, is_client_a ? 'A' : 'B');
+  build_joined_matchmaking (buffer,
+                            rooms[room_index].client_a.sockfd ? 'A' : 'B');
   send_to_client (&client, buffer);
 
   while (!client.room->client_b.sockfd)
     {
     }
 
+  rooms[room_index].is_available = false;
+  rooms[room_index].start_time = time (NULL);
+
+  // After second client joins.
+  init_game (&rooms[room_index]);
   char recv_buffer[BUFSIZ];
-  while (!is_game_over (get_opposing_board (&single_room->game)))
+  while (!is_game_over (get_opposing_board (&rooms[room_index].game)))
     {
       memset (recv_buffer, 0, sizeof (recv_buffer));
-      int bytes_read = recv (get_current_socket_fd (single_room), recv_buffer,
-                             sizeof (recv_buffer) - 1, 0);
+      int bytes_read = recv (get_current_socket_fd (&rooms[room_index]),
+                             recv_buffer, sizeof (recv_buffer) - 1, 0);
       if (bytes_read == 0)
         {
           log_event ("[ERROR] Client disconnection.");
@@ -312,82 +295,122 @@ handle_client (Client client, bool is_client_a)
       recv_buffer[newline_pos] = '\0';
 
       log_event ("Player message received");
-      handle_message (recv_buffer);
+      handle_message (&rooms[room_index], recv_buffer);
 
       // Player turn change
-      single_room->game.current_player
-          = (single_room->game.current_player == PLAYER_A) ? PLAYER_B
-                                                           : PLAYER_A;
+      rooms[room_index].game.current_player
+          = (rooms[room_index].game.current_player == PLAYER_A) ? PLAYER_B
+                                                                : PLAYER_A;
     }
 
   // Game over.
-  if (is_game_over (get_opposing_board (&single_room->game)))
+  if (is_game_over (get_opposing_board (&rooms[room_index].game)))
     {
       char end_msg[BUFSIZ];
-      build_end_game (
-          end_msg, single_room->game.current_player == PLAYER_A ? 'A' : 'B');
-      broadcast (end_msg, single_room);
+      build_end_game (end_msg,
+                      rooms[room_index].game.current_player == PLAYER_A ? 'A'
+                                                                        : 'B');
+      broadcast (end_msg, &rooms[room_index]);
       log_event ("Game over");
     }
+
+  return NULL;
 }
 
-void
-play_game (int server_fd)
+// Initialise server with its socket.
+int
+init_server ()
 {
-  init_game ();
+  int server_fd;
+  if ((server_fd = socket (AF_INET, SOCK_STREAM, 0)) == -1)
+    {
+      fprintf (stderr, "[Error] Failed to create socket.\n");
+      exit (1);
+    }
 
-  cleanup_server (server_fd);
+  struct sockaddr_in serv_addr = {
+    .sin_family = AF_INET,
+    .sin_port = htons (SERVER_PORT),
+    .sin_addr = { htonl (INADDR_ANY) },
+  };
+
+  int reuse = 1;
+  if (setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse))
+      == -1)
+    {
+      fprintf (stderr, "[Error] Failed to set SO_REUSEADDR.\n");
+      exit (1);
+    }
+
+  if (bind (server_fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr))
+      == -1)
+    {
+      fprintf (stderr, "[Error] Failed to bind.\n");
+      exit (1);
+    }
+
+  if (listen (server_fd, MAX_CLIENTS) == -1)
+    {
+      fprintf (stderr, "[Error] Failed to listen.\n");
+      exit (1);
+    }
+
+  log_event ("Server initialized and listening...");
+  printf ("Server created with fd %d\n", server_fd);
+
+  for (int i = 0; i < NUMBER_OF_ROOMS; ++i)
+    {
+      rooms[i].is_available = true;
+    }
+
+  return server_fd;
 }
 
+// Accept incoming client connections and dispatch them.
 void
 run_server ()
 {
   int server_fd = init_server ();
+  int client_socket;
 
-  // First client to connect.
-  bool is_client_a = true;
-  Client client = { 0 };
-  while (single_room->client_a.sockfd == 0
-         || single_room->client_b.sockfd == 0)
+  struct sockaddr_in client_addr;
+  socklen_t client_addr_len;
+  client_addr_len = sizeof (client_addr);
+
+  while ((client_socket = accept (server_fd, (struct sockaddr *)&client_addr,
+                                  &client_addr_len))
+         != -1)
     {
-      struct sockaddr_in client_addr;
-      socklen_t client_addr_len;
-      client_addr_len = sizeof (client_addr);
+      pthread_t thread_id;
 
-      int new_socket = accept (server_fd, (struct sockaddr *)&client_addr,
-                               &client_addr_len);
-      if (new_socket < 0)
-        {
-          log_event ("Error accepting connection");
-          continue;
-        }
-
-      client.sockfd = new_socket;
+      // Set up the argument to the thread.
+      // We care about the address ('cos logs), so we store it instead of
+      // calling `getsockname` each. damn. time.
+      Client client;
       client.addr = client_addr;
-      client.room = single_room;
-      if (is_client_a)
-        single_room->client_a = client;
-      else
-        single_room->client_b = client;
-      log_event ("New client connected");
+      client.sockfd = client_socket;
+      Client *new_client = malloc (sizeof (Client));
+      *new_client = client;
 
-      handle_client (client, is_client_a);
-
-      single_room->is_available = false;
-      single_room->is_available = time (NULL);
-      is_client_a = false;
+      // Create the actual goddamn thread.
+      if (pthread_create (&thread_id, NULL, handle_client, (void *)new_client)
+          != 0)
+        {
+          fprintf (stderr, "[ERROR] Failed to create thread.\n");
+          free (new_client);
+        }
+      pthread_detach (thread_id);
     }
 
-  play_game (server_fd);
+  cleanup_server (server_fd);
 }
 
+// Close socket file descriptors.
 void
 cleanup_server (int server_fd)
 {
   close (server_fd);
+  log_event ("Server closed ^_____^");
 
   // TODO: Close all sockets of all rooms.
-  close (single_room->client_a.sockfd);
-  close (single_room->client_b.sockfd);
-  log_event ("Server closed");
 }
