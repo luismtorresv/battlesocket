@@ -107,9 +107,9 @@ init_server ()
 }
 
 Board *
-get_board (Game *game, Player *player)
+get_board (Game *game, Player player)
 {
-  switch (*player)
+  switch (player)
     {
     case PLAYER_A:
       return &game->board_a;
@@ -123,7 +123,7 @@ get_board (Game *game, Player *player)
 Board *
 get_current_board (Game *game)
 {
-  return get_board (game, &game->current_player);
+  return get_board (game, game->current_player);
 }
 
 Board *
@@ -155,9 +155,9 @@ get_current_socket_fd (Room *room)
 }
 
 Client *
-get_current_client (Room *room)
+get_client (Room *room, Player player)
 {
-  switch (room->game.current_player)
+  switch (player)
     {
     case PLAYER_A:
       return &room->client_a;
@@ -166,6 +166,12 @@ get_current_client (Room *room)
     default:
       return NULL;
     }
+}
+
+Client *
+get_current_client (Room *room)
+{
+  return get_client (room, room->game.current_player);
 }
 
 void
@@ -222,12 +228,31 @@ handle_message (const char *message)
 }
 
 // Decides starting player using the stdlib's random number generator.
-void
+Player
 choose_starting_player (Room *room)
 {
   srand (time (NULL)); // Set seed using current time.
-  // If the number it's even, A goes first.
-  room->game.current_player = (rand () % 2 == 0) ? PLAYER_A : PLAYER_B;
+  Player initial_player = room->game.current_player
+      = (rand () % 2 == 0)
+            ? PLAYER_A
+            : PLAYER_B; // If the number it's even, A goes first.
+  return initial_player;
+}
+
+void
+send_start_game (Room *room, Player player, long start_time,
+                 Player initial_player)
+{
+  Board *board = get_board (&room->game, player);
+  Client *client = get_client (room, player);
+
+  char ship_data[BUFSIZ] = { 0 };
+  get_ship_data (board, ship_data, sizeof (ship_data));
+
+  char start_message[BUFSIZ] = { 0 };
+  build_start_game (start_message, start_time, initial_player, ship_data);
+  send_to_client (client, start_message);
+  log_event (start_message);
 }
 
 void
@@ -236,25 +261,13 @@ init_game ()
   const long int START_GAME_DELAY = 5; // Units: seconds.
   long start_time = time (NULL) + START_GAME_DELAY;
 
-  choose_starting_player (single_room);
+  Player initial_player = choose_starting_player (single_room);
 
   // Send to each client the START_GAME with their boards
-  for (int i = 0; i < MAX_CLIENTS; i++)
-    {
-      char ship_data[1024] = "";
-      Board *board
-          = (i == 0) ? &single_room->game.board_a : &single_room->game.board_b;
-      Client *client
-          = (i == 0) ? &single_room->client_a : &single_room->client_b;
-      get_ship_data (board, ship_data, sizeof (ship_data));
-      char start_msg[2048] = "";
-      // "START_GAME|<unix_time> <initial_player> <ship_data>\n"
-      build_start_game (start_msg, start_time,
-                        single_room->game.current_player, ship_data);
-      send_to_client (client, start_msg);
-      log_event (start_msg);
-    }
-  log_event ("Game started...");
+  send_start_game (single_room, PLAYER_A, start_time, initial_player);
+  send_start_game (single_room, PLAYER_B, start_time, initial_player);
+
+  log_event ("[INFO] Game started.");
 }
 
 void
