@@ -49,8 +49,8 @@ struct Room
 int init_server ();
 void cleanup_server (int server_fd);
 
-Room rooms[NUMBER_OF_ROOMS] = { 0 };
-pthread_mutex_t room_mutex = PTHREAD_MUTEX_INITIALIZER;
+static Room rooms[NUMBER_OF_ROOMS] = { 0 };
+static pthread_mutex_t room_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void
 send_to_client (Client *client, const char *message)
@@ -244,6 +244,7 @@ handle_client (void *arg)
   int room_index = -1;
 
   // Search for an available room.
+  pthread_mutex_lock (&room_mutex);
   for (int i = 0; i < NUMBER_OF_ROOMS; ++i)
     {
       if (rooms[i].is_available)
@@ -257,6 +258,7 @@ handle_client (void *arg)
           break;
         }
     }
+  pthread_mutex_unlock (&room_mutex);
 
   // Send JOINED_MATCHMAKING
   log_event ("New client connected");
@@ -269,7 +271,9 @@ handle_client (void *arg)
     {
     }
 
+  pthread_mutex_lock (&room_mutex);
   rooms[room_index].is_available = false;
+  pthread_mutex_unlock (&room_mutex);
 
   // After second client joins.
   init_game (&rooms[room_index]);
