@@ -56,6 +56,7 @@ void
 send_to_client (Client *client, const char *message)
 {
   send (client->sockfd, message, strlen (message), 0);
+  log_event(message);
 }
 
 // Juan Carlos: "Broadca'ting"
