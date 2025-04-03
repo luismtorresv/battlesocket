@@ -18,13 +18,17 @@
 #define SERVER_PORT 8080
 #define MAX_CLIENTS 2
 
-typedef struct
+typedef struct Client Client;
+typedef struct Room Room;
+typedef struct Game Game;
+
+struct Client
 {
   int sockfd;
   struct sockaddr_in addr;
-} Client;
+  Room *room;
+};
 
-typedef struct Game Game;
 struct Game
 {
   Board board_a;
@@ -32,7 +36,6 @@ struct Game
   Player current_player;
 };
 
-typedef struct Room Room;
 struct Room
 {
   size_t id;
@@ -257,6 +260,13 @@ send_start_game (Room *room, Player player, long start_time)
 void
 init_game ()
 {
+  // Initialising the game for the single room.
+  // This is supposed to be done for every match.
+  init_board (&single_room->game.board_a);
+  init_board (&single_room->game.board_b);
+  place_ships (&single_room->game.board_a);
+  place_ships (&single_room->game.board_b);
+
   const long int START_GAME_DELAY = 5; // Units: seconds.
   long start_time = time (NULL) + START_GAME_DELAY;
 
@@ -270,9 +280,16 @@ init_game ()
 }
 
 void
-play_game (int server_fd)
+handle_client (Client client, bool is_client_a)
 {
-  init_game ();
+  // Send JOINED_MATCHMAKING
+  char buffer[BUFSIZ];
+  build_joined_matchmaking (buffer, is_client_a ? 'A' : 'B');
+  send_to_client (&client, buffer);
+
+  while (!client.room->client_b.sockfd)
+    {
+    }
 
   char recv_buffer[BUFSIZ];
   while (!is_game_over (get_opposing_board (&single_room->game)))
@@ -312,6 +329,12 @@ play_game (int server_fd)
       broadcast (end_msg, single_room);
       log_event ("Game over");
     }
+}
+
+void
+play_game (int server_fd)
+{
+  init_game ();
 
   cleanup_server (server_fd);
 }
@@ -323,12 +346,10 @@ run_server ()
 
   // First client to connect.
   bool is_client_a = true;
-  Client *client = &single_room->client_a;
+  Client client = { 0 };
   while (single_room->client_a.sockfd == 0
          || single_room->client_b.sockfd == 0)
     {
-      if (!is_client_a)
-        client = &single_room->client_b;
       struct sockaddr_in client_addr;
       socklen_t client_addr_len;
       client_addr_len = sizeof (client_addr);
@@ -341,26 +362,21 @@ run_server ()
           continue;
         }
 
-      client->sockfd = new_socket;
-      client->addr = client_addr;
+      client.sockfd = new_socket;
+      client.addr = client_addr;
+      client.room = single_room;
+      if (is_client_a)
+        single_room->client_a = client;
+      else
+        single_room->client_b = client;
       log_event ("New client connected");
 
-      // Send JOINED_MATCHMAKING
-      char buffer[BUFSIZ];
-      build_joined_matchmaking (buffer, is_client_a ? 'A' : 'B');
-      send_to_client (client, buffer);
+      handle_client (client, is_client_a);
 
       single_room->is_available = false;
       single_room->is_available = time (NULL);
       is_client_a = false;
     }
-
-  // Initialising the game for the single room.
-  // This is supposed to be done for every match.
-  init_board (&single_room->game.board_a);
-  init_board (&single_room->game.board_b);
-  place_ships (&single_room->game.board_a);
-  place_ships (&single_room->game.board_b);
 
   play_game (server_fd);
 }
