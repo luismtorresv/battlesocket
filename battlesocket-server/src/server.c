@@ -308,7 +308,8 @@ handle_client (void *arg)
   if (room == NULL)
     {
       fprintf (stderr, "[ERROR] Server is full.\n");
-      close (client->sockfd);
+      if (client)
+        close (client->sockfd);
       return NULL;
     }
 
