@@ -215,6 +215,17 @@ choose_starting_player (Room *room)
                 : PLAYER_B); // If the number it's even, A goes first.
 }
 
+// Change current player to opposing player.
+void
+change_turn (Room *room)
+{
+  pthread_mutex_lock (&room_mutex);
+  Player next_player
+      = (room->game.current_player == PLAYER_A) ? PLAYER_B : PLAYER_A;
+  room->game.current_player = next_player;
+  pthread_mutex_unlock (&room_mutex);
+}
+
 void
 send_start_game (Room *room, Player player)
 {
@@ -347,9 +358,7 @@ handle_client (void *arg)
       log_event ("Player message received");
       handle_message (room, recv_buffer);
 
-      // Player turn change
-      room->game.current_player
-          = (room->game.current_player == PLAYER_A) ? PLAYER_B : PLAYER_A;
+      change_turn (room);
     }
 
   // Game over.
