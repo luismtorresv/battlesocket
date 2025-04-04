@@ -16,7 +16,7 @@ typedef enum
 MsgType parse_message (const char *msg);
 void build_start_game (char *buffer, long unix_time, Player initial_player,
                        const char *ship_data);
-void build_joined_matchmaking (char *buffer, char letter);
+void build_joined_matchmaking (char *buffer, Player letter);
 void build_action_result (char *buffer, const char *result, const char *pos,
                           int sunk, const Player current_player);
 void build_shot (char *buffer, const char *pos);
