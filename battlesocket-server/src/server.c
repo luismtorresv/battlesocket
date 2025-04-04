@@ -18,6 +18,14 @@
 #define SERVER_PORT 8080
 #define MAX_CLIENTS 2
 
+// Enum declarations.
+typedef enum
+{
+  AVAILABLE = 0,
+  WAITING,
+  OCCUPIED,
+} ROOM_STATE;
+
 typedef struct Client Client;
 typedef struct Room Room;
 typedef struct Game Game;
@@ -34,6 +42,7 @@ struct Game
   Board board_a;
   Board board_b;
   Player current_player;
+  long int start_time;
 };
 
 struct Room
@@ -41,7 +50,7 @@ struct Room
   size_t id;
   Client client_a;
   Client client_b;
-  bool is_available;
+  ROOM_STATE state;
   Game game;
 };
 
@@ -56,7 +65,7 @@ void
 send_to_client (Client *client, const char *message)
 {
   send (client->sockfd, message, strlen (message), 0);
-  log_event(message);
+  log_event (message);
 }
 
 void
@@ -64,6 +73,12 @@ broadcast (const char *message, Room *room)
 {
   send_to_client (&room->client_a, message);
   send_to_client (&room->client_b, message);
+}
+
+bool
+is_room_available (Room *room)
+{
+  return (room->client_a.sockfd == 0) || (room->client_b.sockfd == 0);
 }
 
 Board *
@@ -198,11 +213,12 @@ choose_starting_player (Room *room)
 }
 
 void
-send_start_game (Room *room, Player player, long start_time)
+send_start_game (Room *room, Player player)
 {
   Board *board = get_board (&room->game, player);
   Client *client = get_client (room, player);
   Player initial_player = room->game.current_player;
+  long int start_time = room->game.start_time;
 
   char ship_data[BUFSIZ] = { 0 };
   get_ship_data (board, ship_data, sizeof (ship_data));
@@ -210,29 +226,29 @@ send_start_game (Room *room, Player player, long start_time)
   char start_message[BUFSIZ] = { 0 };
   build_start_game (start_message, start_time, initial_player, ship_data);
   send_to_client (client, start_message);
-  log_event (start_message);
 }
 
 void
 init_game (Room *room)
 {
+  if (room->state == OCCUPIED)
+    return;
+
   // Initialising the game for the single room.
   // This is supposed to be done for every match.
+  pthread_mutex_lock (&room_mutex);
   init_board (&room->game.board_a);
   init_board (&room->game.board_b);
   place_ships (&room->game.board_a);
   place_ships (&room->game.board_b);
 
   const long int START_GAME_DELAY = 5; // Units: seconds.
-  long start_time = time (NULL) + START_GAME_DELAY;
+  room->game.start_time = time (NULL) + START_GAME_DELAY;
 
   choose_starting_player (room);
+  pthread_mutex_unlock (&room_mutex);
 
-  // Send to each client the START_GAME with their boards
-  send_start_game (room, PLAYER_A, start_time);
-  send_start_game (room, PLAYER_B, start_time);
-
-  log_event ("[INFO] Game started.");
+  log_event ("[INFO] Game initialised.");
 }
 
 void *
@@ -241,48 +257,64 @@ handle_client (void *arg)
   Client client = *(Client *)arg;
   free (arg);
 
-  int room_index = -1;
+  Room *room = NULL;
 
   // Search for an available room.
   pthread_mutex_lock (&room_mutex);
   for (int i = 0; i < NUMBER_OF_ROOMS; ++i)
     {
-      if (rooms[i].is_available)
+      if (rooms[i].state != OCCUPIED)
         {
+          room = &rooms[i];
+          room->state = WAITING;
           // Is first client unassigned?
-          if (!rooms[i].client_a.sockfd)
-            rooms[i].client_a = client;
+          if (room->client_a.sockfd == 0)
+            {
+              init_game (&rooms[i]);
+              rooms->client_a = client;
+            }
           else
-            rooms[i].client_b = client;
-          room_index = i;
+            rooms->client_b = client;
           break;
         }
     }
   pthread_mutex_unlock (&room_mutex);
 
+  if (room == NULL)
+    {
+      fprintf (stderr, "[ERROR] Server is full.\n");
+      close (client.sockfd);
+      return NULL;
+    }
+
   // Send JOINED_MATCHMAKING
   log_event ("New client connected");
   char buffer[BUFSIZ];
-  build_joined_matchmaking (buffer,
-                            rooms[room_index].client_a.sockfd ? 'A' : 'B');
+  build_joined_matchmaking (buffer, room->client_a.sockfd ? 'A' : 'B');
   send_to_client (&client, buffer);
 
-  while (!client.room->client_b.sockfd)
+  while (!is_room_available (room))
     {
+      sleep (1);
     }
 
   pthread_mutex_lock (&room_mutex);
-  rooms[room_index].is_available = false;
+  if (room->state == WAITING)
+    {
+      // Send to each client the START_GAME with their boards
+      send_start_game (room, PLAYER_A);
+      send_start_game (room, PLAYER_B);
+      room->state = OCCUPIED;
+    }
   pthread_mutex_unlock (&room_mutex);
 
   // After second client joins.
-  init_game (&rooms[room_index]);
   char recv_buffer[BUFSIZ];
-  while (!is_game_over (get_opposing_board (&rooms[room_index].game)))
+  while (!is_game_over (get_opposing_board (&room->game)))
     {
       memset (recv_buffer, 0, sizeof (recv_buffer));
-      int bytes_read = recv (get_current_socket_fd (&rooms[room_index]),
-                             recv_buffer, sizeof (recv_buffer) - 1, 0);
+      int bytes_read = recv (get_current_socket_fd (room), recv_buffer,
+                             sizeof (recv_buffer) - 1, 0);
       if (bytes_read == 0)
         {
           log_event ("[ERROR] Client disconnection.");
@@ -298,22 +330,20 @@ handle_client (void *arg)
       recv_buffer[newline_pos] = '\0';
 
       log_event ("Player message received");
-      handle_message (&rooms[room_index], recv_buffer);
+      handle_message (room, recv_buffer);
 
       // Player turn change
-      rooms[room_index].game.current_player
-          = (rooms[room_index].game.current_player == PLAYER_A) ? PLAYER_B
-                                                                : PLAYER_A;
+      room->game.current_player
+          = (room->game.current_player == PLAYER_A) ? PLAYER_B : PLAYER_A;
     }
 
   // Game over.
-  if (is_game_over (get_opposing_board (&rooms[room_index].game)))
+  if (is_game_over (get_opposing_board (&room->game)))
     {
       char end_msg[BUFSIZ];
       build_end_game (end_msg,
-                      rooms[room_index].game.current_player == PLAYER_A ? 'A'
-                                                                        : 'B');
-      broadcast (end_msg, &rooms[room_index]);
+                      room->game.current_player == PLAYER_A ? 'A' : 'B');
+      broadcast (end_msg, room);
       log_event ("Game over");
     }
 
@@ -360,11 +390,6 @@ init_server ()
 
   log_event ("Server initialized and listening...");
   printf ("Server created with fd %d\n", server_fd);
-
-  for (int i = 0; i < NUMBER_OF_ROOMS; ++i)
-    {
-      rooms[i].is_available = true;
-    }
 
   return server_fd;
 }
