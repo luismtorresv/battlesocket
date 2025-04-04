@@ -59,7 +59,6 @@ send_to_client (Client *client, const char *message)
   log_event(message);
 }
 
-// Juan Carlos: "Broadca'ting"
 void
 broadcast (const char *message, Room *room)
 {
