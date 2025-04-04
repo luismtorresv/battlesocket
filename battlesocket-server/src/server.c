@@ -23,7 +23,9 @@ typedef enum
 {
   AVAILABLE = 0,
   WAITING,
-  OCCUPIED,
+  READY_TO_START,
+  IN_PROGRESS,
+  FINISHED = AVAILABLE,
 } ROOM_STATE;
 
 typedef struct Client Client;
@@ -35,6 +37,7 @@ struct Client
   int sockfd;
   struct sockaddr_in addr;
   Room *room;
+  Player player;
 };
 
 struct Game
@@ -47,7 +50,7 @@ struct Game
 
 struct Room
 {
-  size_t id;
+  int id;
   Client client_a;
   Client client_b;
   ROOM_STATE state;
@@ -58,7 +61,7 @@ struct Room
 int init_server ();
 void cleanup_server (int server_fd);
 
-static Room rooms[NUMBER_OF_ROOMS] = { 0 };
+static Room ROOMS[NUMBER_OF_ROOMS] = { 0 };
 static pthread_mutex_t room_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void
@@ -231,7 +234,7 @@ send_start_game (Room *room, Player player)
 void
 init_game (Room *room)
 {
-  if (room->state == OCCUPIED)
+  if (room->state != READY_TO_START)
     return;
 
   // Initialising the game for the single room.
@@ -248,33 +251,44 @@ init_game (Room *room)
   choose_starting_player (room);
   pthread_mutex_unlock (&room_mutex);
 
-  log_event ("[INFO] Game initialised.");
+  char buffer[BUFSIZ];
+  snprintf (buffer, sizeof (buffer),
+            "[INFO] Game initialised for room with id %d.", room->id);
+  log_event (buffer);
 }
 
 void *
 handle_client (void *arg)
 {
-  Client client = *(Client *)arg;
+  // Copy of the argument.
+  Client base_client = *(Client *)arg;
   free (arg);
 
+  Client *client = NULL; // Will point to actual client in room.
   Room *room = NULL;
 
   // Search for an available room.
   pthread_mutex_lock (&room_mutex);
   for (int i = 0; i < NUMBER_OF_ROOMS; ++i)
     {
-      if (rooms[i].state != OCCUPIED)
+      if (ROOMS[i].state == WAITING || ROOMS[i].state == AVAILABLE)
         {
-          room = &rooms[i];
-          room->state = WAITING;
+          room = &ROOMS[i];
           // Is first client unassigned?
           if (room->client_a.sockfd == 0)
             {
-              init_game (&rooms[i]);
-              rooms->client_a = client;
+              room->client_a = base_client;
+              room->client_a.player = PLAYER_A;
+              client = &room->client_a;
+              room->state = WAITING;
             }
           else
-            rooms->client_b = client;
+            {
+              room->client_b = base_client;
+              room->client_b.player = PLAYER_B;
+              client = &room->client_b;
+              room->state = READY_TO_START;
+            }
           break;
         }
     }
@@ -283,30 +297,31 @@ handle_client (void *arg)
   if (room == NULL)
     {
       fprintf (stderr, "[ERROR] Server is full.\n");
-      close (client.sockfd);
+      close (client->sockfd);
       return NULL;
     }
 
   // Send JOINED_MATCHMAKING
   log_event ("New client connected");
   char buffer[BUFSIZ];
-  build_joined_matchmaking (buffer, room->client_a.sockfd ? 'A' : 'B');
-  send_to_client (&client, buffer);
+  build_joined_matchmaking (buffer, client->player);
+  send_to_client (client, buffer);
 
-  while (!is_room_available (room))
+  while (room->state == WAITING)
     {
       sleep (1);
     }
 
-  pthread_mutex_lock (&room_mutex);
-  if (room->state == WAITING)
+  // pthread_mutex_lock (&room_mutex);
+  if (room->state == READY_TO_START)
     {
       // Send to each client the START_GAME with their boards
+      init_game (room);
       send_start_game (room, PLAYER_A);
       send_start_game (room, PLAYER_B);
-      room->state = OCCUPIED;
+      room->state = IN_PROGRESS;
     }
-  pthread_mutex_unlock (&room_mutex);
+  // pthread_mutex_unlock (&room_mutex);
 
   // After second client joins.
   char recv_buffer[BUFSIZ];
@@ -390,6 +405,11 @@ init_server ()
 
   log_event ("Server initialized and listening...");
   printf ("Server created with fd %d\n", server_fd);
+
+  for (int i = 0; i < NUMBER_OF_ROOMS; ++i)
+    {
+      ROOMS[i].id = i;
+    }
 
   return server_fd;
 }
