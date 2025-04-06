@@ -96,19 +96,20 @@ log_event (LogLevel level, const char *fmt, ...)
   strftime (datestr, sizeof (datestr) - 1, DATE_FORMAT, &datetime);
   __logv (level, "%s ", datestr);
 
+  const char *LEVEL_FORMAT = "[%s] ";
   switch (level)
     {
     case LOG_DEBUG:
-      __logv (level, "[DEBUG] ");
+      __logv (level, LEVEL_FORMAT, "DEBUG");
       break;
     case LOG_INFO:
-      __logv (level, "[INFO] ");
+      __logv (level, LEVEL_FORMAT, "INFO");
       break;
     case LOG_ERROR:
-      __logv (level, "[ERROR] ");
+      __logv (level, LEVEL_FORMAT, "ERROR");
       break;
     case LOG_FATAL:
-      __logv (level, "[FATAL] ");
+      __logv (level, LEVEL_FORMAT, "FATAL");
       break;
     default:
       break;
