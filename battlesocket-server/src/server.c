@@ -277,8 +277,8 @@ handle_client (void *arg)
   while (!is_game_over (get_opposing_board (game)))
     {
       memset (recv_buffer, 0, sizeof (recv_buffer));
-      int bytes_read = recv (get_current_socket_fd (room), recv_buffer,
-                             sizeof (recv_buffer) - 1, 0);
+      int bytes_read
+          = recv (client->sockfd, recv_buffer, sizeof (recv_buffer) - 1, 0);
       if (bytes_read == 0)
         {
           log_event (LOG_INFO, "Client disconnection.");
