@@ -346,8 +346,7 @@ init_server ()
       exit (1);
     }
 
-  log_event (LOG_INFO, "Server initialized and listening...");
-  log_event (LOG_INFO, "Server created with fd %d.", server_fd);
+  log_event (LOG_INFO, "Server listening with file descriptor %d.", server_fd);
 
   for (int i = 0; i < NUMBER_OF_ROOMS; ++i)
     {
