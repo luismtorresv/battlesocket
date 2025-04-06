@@ -34,7 +34,7 @@ def read_message(msg):
     prot_message = p.Protocol[f'MSG_{prot_message}']
     match prot_message:
         case p.Protocol.MSG_START_GAME:
-            data = start_game(msg)
+            data = g.start_game(msg)
             print(data[2])
         case p.Protocol.MSG_HIT:
             #recibio un hit
@@ -52,13 +52,6 @@ def read_message(msg):
         case p.Protocol.MSG_BAD_REQUEST:
             #Recibio un error
             pass
-
-def start_game(msg):
-    pivot = msg.find("initial_player")
-    headers,board = msg[0:pivot+16], msg[pivot+16:]  #Separar los 'headers' del mensaje de el board usando el ultimo header como pivote.
-    name, start_time, initial_player = headers.split(" ")
-    player_board = g.place_ships(board)
-    return (start_time,initial_player,player_board)
 
 def init_client():
     g.start_client()

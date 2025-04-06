@@ -55,3 +55,10 @@ def place_ships(board):
             player_board.place_coor(ship[1],ship[0][1].upper()) #La primera letra de cada barco es puesta en el board. TODO: Manejar el whitespace en el mensaje.
     return player_board
 
+def start_game(msg):
+    pivot = msg.find("board:")
+    print(pivot)
+    headers,board = msg[0:pivot-1], msg[pivot+6:-1]  #Separar los 'headers' del mensaje de el board usando el ultimo header como pivote.
+    name, start_time, initial_player = headers.split(" ")
+    player_board = place_ships(board)
+    return (start_time,initial_player,player_board)
