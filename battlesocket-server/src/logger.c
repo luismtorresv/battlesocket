@@ -1,20 +1,37 @@
 #include "logger.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
+static FILE *log_file = NULL;
 
-FILE *log_file = NULL;
+int set_log_file (const char *filename);
 
-void
-init_logger ()
+int
+set_log_file (const char *filename)
 {
-  log_file = fopen ("server.log", "a");
+  if (filename == NULL)
+    return 1;
+
+  log_file = fopen (filename, "wa");
   if (log_file == NULL)
     {
-      perror ("Failed to open the log file");
+      fprintf (stderr, "error: failed to open log file \"%s\": %s\n", filename,
+               strerror (errno));
+      return 1;
     }
+
+  return 0;
+}
+
+void
+init_logger (const char *log_filename)
+{
+  if (set_log_file (log_filename))
+    exit (EXIT_FAILURE);
 }
 
 void
