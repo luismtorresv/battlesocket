@@ -15,7 +15,7 @@ void
 build_start_game (char *buffer, long unix_time, Player initial_player,
                   const char *ship_data)
 {
-  sprintf (buffer, "START_GAME start_time:%ld initial_player:%c %s\n",
+  sprintf (buffer, "START_GAME start_time:%ld initial_player:%c board:{%s}\n",
            unix_time, initial_player, ship_data);
 }
 
