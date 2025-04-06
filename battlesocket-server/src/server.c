@@ -157,15 +157,15 @@ handle_message (Room *room, const char *message)
 {
   if (parse_message (message) != MSG_SHOT)
     {
-      send_to_client (get_current_client (room), "BAD_REQUEST|\n");
+      send_to_client (get_current_client (room), "BAD_REQUEST\n");
       return;
     }
 
   // We expect a message like "SHOT|A-1"
-  char *separator = strchr (message, '|');
+  char *separator = strchr (message, ' ');
   if (separator == NULL)
     {
-      send_to_client (get_current_client (room), "BAD_REQUEST|\n");
+      send_to_client (get_current_client (room), "BAD_REQUEST\n");
       return;
     }
   char pos[16] = { 0 };
@@ -173,7 +173,7 @@ handle_message (Room *room, const char *message)
 
   if (pos[0] < 'A' || pos[0] > 'J' || pos[1] != '-')
     {
-      send_to_client (get_current_client (room), "BAD_REQUEST|\n");
+      send_to_client (get_current_client (room), "BAD_REQUEST\n");
       return;
     }
   char row_char = pos[0];

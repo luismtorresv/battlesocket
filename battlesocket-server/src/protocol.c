@@ -22,7 +22,7 @@ build_start_game (char *buffer, long unix_time, Player initial_player,
 void
 build_joined_matchmaking (char *buffer, Player player)
 {
-  sprintf (buffer, "JOINED_MATCHMAKING|%c\n", player);
+  sprintf (buffer, "JOINED_MATCHMAKING %c\n", player);
 }
 
 void
@@ -30,18 +30,18 @@ build_action_result (char *buffer, const char *result, const char *pos,
                      int sunk, const Player current_player)
 {
   char next_player = current_player == PLAYER_A ? PLAYER_B : PLAYER_A;
-  char *format = sunk ? "%s|%s SUNK %c\n" : "%s|%s %c\n";
+  char *format = sunk ? "%s %s SUNK %c\n" : "%s %s %c\n";
   sprintf (buffer, format, result, pos, next_player);
 }
 
 void
 build_shot (char *buffer, const char *pos)
 {
-  sprintf (buffer, "SHOT|%s\n", pos);
+  sprintf (buffer, "SHOT %s\n", pos);
 }
 
 void
 build_end_game (char *buffer, const char winner)
 {
-  sprintf (buffer, "END_GAME|%c\n", winner);
+  sprintf (buffer, "END_GAME %c\n", winner);
 }
