@@ -24,6 +24,7 @@ int set_log_file (const char *filename);
 void __log (LogLevel level, const char *fmt, va_list ap);
 void __logv (LogLevel level, const char *fmt, ...);
 
+// Sets the `log_file` to write to. Returns 0 if successful and 1 otherwise.
 int
 set_log_file (const char *filename)
 {
@@ -41,6 +42,8 @@ set_log_file (const char *filename)
   return 0;
 }
 
+// Initialises a logger.
+// Exits in case of failure.
 void
 init_logger (const char *log_filename)
 {
@@ -48,6 +51,8 @@ init_logger (const char *log_filename)
     exit (EXIT_FAILURE);
 }
 
+// Internal use function for printing a known list of variadic arguments.
+// Writes to a standard stream, as well as to a log file (if defined).
 void
 __log (LogLevel level, const char *fmt, va_list ap)
 {
@@ -64,6 +69,9 @@ __log (LogLevel level, const char *fmt, va_list ap)
     }
 }
 
+// Internal use function that logs a format string with an unknown number of
+// arguments. Meant to be used as the `printf` class of functions. E.g.:
+// __logv(LEVEL_INFO, "Hello, %s! It's %s.", name, week_day);
 void
 __logv (LogLevel level, const char *fmt, ...)
 {
@@ -73,6 +81,8 @@ __logv (LogLevel level, const char *fmt, ...)
   va_end (ap);
 }
 
+// Log a message with a certain `level`.
+// This variadic function is meant to be used as e.g. `printf`.
 void
 log_event (LogLevel level, const char *fmt, ...)
 {
@@ -125,6 +135,7 @@ log_event (LogLevel level, const char *fmt, ...)
   __logv (level, "\n");
 }
 
+// Close log file (if defined).
 void
 close_logger ()
 {

@@ -64,6 +64,7 @@ void cleanup_server (int server_fd);
 static Room ROOMS[NUMBER_OF_ROOMS] = { 0 };
 static pthread_mutex_t room_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+// Sends a message to a client.
 void
 send_to_client (Client *client, const char *message)
 {
@@ -71,6 +72,7 @@ send_to_client (Client *client, const char *message)
   log_event (LOG_INFO, message);
 }
 
+// Sends a message to both clients of a room.
 void
 broadcast (const char *message, Room *room)
 {
@@ -78,12 +80,14 @@ broadcast (const char *message, Room *room)
   send_to_client (&room->client_b, message);
 }
 
+// Returns true if room is not occupied.
 bool
 is_room_available (Room *room)
 {
   return (room->client_a.sockfd == 0) || (room->client_b.sockfd == 0);
 }
 
+// Returns a pointer to the board of `player`.
 Board *
 get_board (Game *game, Player player)
 {
@@ -98,12 +102,14 @@ get_board (Game *game, Player player)
     }
 }
 
+// Returns a pointer to the board of the current player.
 Board *
 get_current_board (Game *game)
 {
   return get_board (game, game->current_player);
 }
 
+// Returns a pointer to the board of the opposite player (at the time being).
 Board *
 get_opposing_board (Game *game)
 {
@@ -118,6 +124,7 @@ get_opposing_board (Game *game)
     }
 }
 
+// Returns the socket file descriptor of the current player.
 int
 get_current_socket_fd (Room *room)
 {
@@ -132,6 +139,7 @@ get_current_socket_fd (Room *room)
     }
 }
 
+// Returns a pointer to the client assigned to a certain player.
 Client *
 get_client (Room *room, Player player)
 {
@@ -146,12 +154,14 @@ get_client (Room *room, Player player)
     }
 }
 
+// Returns a pointer to the client of the current player.
 Client *
 get_current_client (Room *room)
 {
   return get_client (room, room->game.current_player);
 }
 
+// Handle a message of the protocol.
 void
 handle_message (Room *room, const char *message)
 {
@@ -226,6 +236,7 @@ change_turn (Room *room)
   pthread_mutex_unlock (&room_mutex);
 }
 
+// Send start game message to `player`.
 void
 send_start_game (Room *room, Player player)
 {
@@ -242,6 +253,7 @@ send_start_game (Room *room, Player player)
   send_to_client (client, start_message);
 }
 
+// Initialise game.
 void
 init_game (Room *room)
 {
@@ -265,6 +277,7 @@ init_game (Room *room)
   log_event (LOG_INFO, "Game initialised for room with id %d.", room->id);
 }
 
+// Handle a client throughout the entire game session.
 void *
 handle_client (void *arg)
 {

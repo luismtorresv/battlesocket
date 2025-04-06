@@ -4,12 +4,14 @@
 #include <string.h>
 #include <time.h>
 
+// Generate a random integer between min and max.
 static int
 random_int (int min, int max)
 {
   return min + rand () % (max - min + 1);
 }
 
+// Initialise game board.
 void
 init_board (Board *board)
 {
@@ -25,6 +27,11 @@ init_board (Board *board)
   board->ship_count = 0;
 }
 
+// Place a ship in a game board.
+// - `name` is the type of ship.
+// - `length` is the number of cells it occupies.
+// - `ship_index` is the index in the `ships` member of `Board`.
+// Returns 1 if placed, 0 if it failed.
 int
 place_ship (Board *board, const char *name, int length, int ship_index)
 {
@@ -79,6 +86,7 @@ place_ship (Board *board, const char *name, int length, int ship_index)
   return 0; // Couldn't be placed
 }
 
+// Place ships in a game board.
 void
 place_ships (Board *board)
 {
@@ -137,7 +145,8 @@ place_ships (Board *board)
   ship_index++;
 }
 
-// Return 1 if cell in (row,col) has SHIP, 0 otherwise
+// Validate a shot in `row` and `col`.
+// Return 1 if cell in there's a ship in (row,col) and 0 otherwise.
 int
 validate_shot (Board *board, int row, int col)
 {
@@ -148,6 +157,7 @@ validate_shot (Board *board, int row, int col)
   return 0;
 }
 
+// Update board at (row,col) with a hit.
 void
 update_board (Board *board, int row, int col, int hit)
 {
@@ -166,6 +176,7 @@ update_board (Board *board, int row, int col, int hit)
     }
 }
 
+// Returns 1 if all ships in a board are sunk, 0 otherwise.
 int
 is_game_over (Board *board)
 {
@@ -177,6 +188,7 @@ is_game_over (Board *board)
   return 1;
 }
 
+// Returns 1 if all the cells of a ship have been hit and 0 otherwise.
 int
 is_ship_sunk (Board *board, int ship_index)
 {
@@ -185,6 +197,8 @@ is_ship_sunk (Board *board, int ship_index)
   return (board->ships[ship_index].hits == board->ships[ship_index].length);
 }
 
+// Returns the corresponding ship at a certain (row, col).
+// If either of the parameters exceeds the dimensions of the board, returns -1.
 int
 get_ship_index_at (Board *board, int row, int col)
 {
@@ -193,6 +207,7 @@ get_ship_index_at (Board *board, int row, int col)
   return board->ship_map[row][col];
 }
 
+// Returns an ASCII text representation of the board's ships in the format:
 // "<ship_id>:<coord1> <coord2> ... ; <ship_id>:<coord1> ..."
 void
 get_ship_data (Board *board, char *buffer, size_t buffer_size)
