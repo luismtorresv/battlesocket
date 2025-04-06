@@ -6,10 +6,6 @@
 #define BOARD_SIZE 10
 #define NUM_SHIPS 9
 
-typedef struct Game Game;
-typedef struct Ship Ship;
-typedef struct Board Board;
-
 typedef enum
 {
   NO_PLAYER = 0,
@@ -33,6 +29,10 @@ typedef enum
   HIT,
   MISS
 } CellStatus;
+
+typedef struct Ship Ship;
+typedef struct Board Board;
+typedef struct Game Game;
 
 struct Ship
 {
