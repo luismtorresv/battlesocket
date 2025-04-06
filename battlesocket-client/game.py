@@ -1,23 +1,21 @@
 import time
 import os
 
-#Create y display battlefield fueron sacadas de la siguiente implementación: https://stackoverflow.com/questions/77575338/battleship-project-with-python
-def create_battlefield(map_size):
-    """
-    function to create a map based on size
-    """
-    return [["_"] * map_size for _ in range(map_size)]
+class Board:
+    #el codigo de init y str fueron sacadas de la siguiente implementación: https://stackoverflow.com/questions/77575338/battleship-project-with-python
 
-def display_battlefield(board):
-    """
-    function to display current state of the map.
-    """
-    for row in board:
-        print(" ".join(row))
+    def __init__(self, map_size):
+        self.board = [["_"] * map_size for _ in range(map_size)]
+    
+    def __str__(self):
+        return "\n".join(" ".join(row) for row in self.board)
+    
+    def place_coor(self,set_of_coordinates, ship_type):
+        for coor in set_of_coordinates:
+            self.board[coor[0]][coor[1]] = ship_type
 
 def start_client():
     print("Welcome to Battleship™!")
-    time.sleep(1)
     while True:
         ans = input("Do you wish to play? (Y/N)")
         if ans.lower() == "y":
@@ -34,12 +32,10 @@ def translate(set_of_coordinates):
         
     new_set = []
     for each in set_of_coordinates.split(" "):    #No me gusta la complejidad pero en este momento no encuentro solución.
-        letter,number = each[0]-1,int(each[1:])-1  #Se le resta 1 para que quede acorde a las posiciones con las que python funciona. 
+        letter,number = each[0],each[1:]  
         letter = vocab[letter]
-        new_set.append((letter,number))
+        new_set.append((letter-1,int(number)-1)) #Se le resta 1 para que quede bien en la board
     return new_set
-            
-
 
 #Esta funcion espera el mensaje que contiene unicamente el board. 
 def place_ships(board):
@@ -49,5 +45,10 @@ def place_ships(board):
         coor = translate(coor)
 
         battleships[i] = (name,coor)
-    return battleships
+    
+    player_board = Board(10)
+    for ship in battleships:
+        ship[0].strip()
+        player_board.place_coor(ship[1],ship[0][1].upper()) #La primera letra de cada barco es puesta en el board. TODO: Manejar el whitespace en el mensaje.
+    return player_board
 
