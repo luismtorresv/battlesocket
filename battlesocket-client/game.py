@@ -27,7 +27,7 @@ def start_client():
             print("Please try again!")
     
 def translate(set_of_coordinates):
-    vocab = {'A':1,'B':2,'C':3,'D':4,'E':5,
+    vocab = {'A':1,'B':2,'C':3,'D':4,'E':5,   #TODO: Create dedicated file for constants such as this
             'F':6,'G':7,'H':8,'I':9,'J':10}
         
     new_set = []
@@ -49,6 +49,9 @@ def place_ships(board):
     player_board = Board(10)
     for ship in battleships:
         ship[0].strip()
-        player_board.place_coor(ship[1],ship[0][1].upper()) #La primera letra de cada barco es puesta en el board. TODO: Manejar el whitespace en el mensaje.
+        if ship[0].__contains__('cruiser'):
+            player_board.place_coor(ship[1],ship[0][1])  #En el caso del cruiser, se pone minuscula
+        else:
+            player_board.place_coor(ship[1],ship[0][1].upper()) #La primera letra de cada barco es puesta en el board. TODO: Manejar el whitespace en el mensaje.
     return player_board
 

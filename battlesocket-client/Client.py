@@ -8,6 +8,8 @@ cola = []
 
 def init_socket():
     #Inicializar el socket
+    
+
     SERVER = socket.gethostbyname(socket.gethostname())
     ADDR = (SERVER, PORT)
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -23,13 +25,42 @@ def init_socket():
             cola.append(mensaje.split("\n"))
             
         current_message = cola.pop()[0] #La cola contiene el mensaje junto con la cadena vacia. Solo seleccionamos el mensaje.
-        response = p.read_message(current_message)
+        response = read_message(current_message)
         
 
+def read_message(msg):
+    msg = msg.replace('|',' ') #TODO: CAMBIAR A UN ESPACIO CUANDO PAREMOS DE USAR |. Esta linea es provisional.
+    prot_message = msg.split(" ")[0] 
+    prot_message = p.Protocol[f'MSG_{prot_message}']
+    match prot_message:
+        case p.Protocol.MSG_START_GAME:
+            data = start_game(msg)
+            print(data[2])
+        case p.Protocol.MSG_HIT:
+            #recibio un hit
+            pass
+        case p.Protocol.MSG_MISS:
+            #Recibio un miss
+            pass
+        case p.Protocol.MSG_JOINED_MATCHMAKING:
+            #Recibio un inicio de conexion
+            p.init_matchmaking(msg)
+            pass
+        case p.Protocol.MSG_END_GAME:
+            #Recibio un final de juego
+            pass
+        case p.Protocol.MSG_BAD_REQUEST:
+            #Recibio un error
+            pass
 
+def start_game(msg):
+    pivot = msg.find("initial_player")
+    headers,board = msg[0:pivot+16], msg[pivot+16:]  #Separar los 'headers' del mensaje de el board usando el ultimo header como pivote.
+    name, start_time, initial_player = headers.split(" ")
+    player_board = g.place_ships(board)
+    return (start_time,initial_player,player_board)
 
-if __name__ == "__main__":
+def init_client():
     g.start_client()
     init_socket()
-
-    
+    #TODO: Close the socket.
