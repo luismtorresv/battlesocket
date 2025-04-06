@@ -53,7 +53,7 @@ log_event (const char *event)
 
   char date_as_text[BUFSIZ] = { 0 };
   const char *DATE_FORMAT = "%F %T";
-  strftime (date_as_text, sizeof (date_as_text), DATE_FORMAT, &datetime);
+  strftime (date_as_text, sizeof (date_as_text) - 1, DATE_FORMAT, &datetime);
 
   char log_message[BUFSIZ * 2] = { 0 };
   snprintf (log_message, sizeof (log_message), "%s %s\n", date_as_text, event);
