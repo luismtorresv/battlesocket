@@ -1,7 +1,7 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
-#include "common.h"
+#include "server.h"
 
 typedef enum
 {

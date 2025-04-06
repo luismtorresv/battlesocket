@@ -1,4 +1,6 @@
 #include "game.h"
+#include "logger.h"
+#include "server.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,20 +14,50 @@ random_int (int min, int max)
   return min + rand () % (max - min + 1);
 }
 
+// Initialise game.
+void
+init_game (Game *game)
+{
+  if (game->state != READY_TO_START)
+    return;
+
+  init_board (&game->board_a);
+  init_board (&game->board_b);
+
+  const long int START_GAME_DELAY = 5; // Units: seconds.
+  game->start_time = time (NULL) + START_GAME_DELAY;
+
+  choose_starting_player (game);
+
+  log_event (LOG_INFO, "Initialised game %d.", game->id);
+}
+
 // Initialise game board.
 void
 init_board (Board *board)
 {
-  int i, j;
-  for (i = 0; i < BOARD_SIZE; i++)
+  for (int i = 0; i < BOARD_SIZE; i++)
     {
-      for (j = 0; j < BOARD_SIZE; j++)
+      for (int j = 0; j < BOARD_SIZE; j++)
         {
           board->grid[i][j] = WATER;
           board->ship_map[i][j] = -1;
         }
     }
   board->ship_count = 0;
+
+  place_ships (board);
+}
+
+// Decides starting player using the stdlib's random number generator.
+Player
+choose_starting_player (Game *game)
+{
+  srand (time (NULL)); // Set seed using current time.
+  return (game->current_player
+          = (rand () % 2 == 0)
+                ? PLAYER_A
+                : PLAYER_B); // If the number it's even, A goes first.
 }
 
 // Place a ship in a game board.

@@ -1,5 +1,4 @@
 #include "server.h"
-#include "common.h"
 #include "game.h"
 #include "logger.h"
 #include "protocol.h"
@@ -17,45 +16,6 @@
 #define NUMBER_OF_ROOMS 1024
 #define SERVER_PORT 8080
 #define MAX_CLIENTS 2
-
-// Enum declarations.
-typedef enum
-{
-  AVAILABLE = 0,
-  WAITING,
-  READY_TO_START,
-  IN_PROGRESS,
-  FINISHED = AVAILABLE,
-} ROOM_STATE;
-
-typedef struct Client Client;
-typedef struct Room Room;
-typedef struct Game Game;
-
-struct Client
-{
-  int sockfd;
-  struct sockaddr_in addr;
-  Room *room;
-  Player player;
-};
-
-struct Game
-{
-  Board board_a;
-  Board board_b;
-  Player current_player;
-  long int start_time;
-};
-
-struct Room
-{
-  int id;
-  Client client_a;
-  Client client_b;
-  ROOM_STATE state;
-  Game game;
-};
 
 // Local function declarations.
 int init_server ();
@@ -214,17 +174,6 @@ handle_message (Room *room, const char *message)
   log_event (LOG_INFO, "Action message sent");
 }
 
-// Decides starting player using the stdlib's random number generator.
-Player
-choose_starting_player (Room *room)
-{
-  srand (time (NULL)); // Set seed using current time.
-  return (room->game.current_player
-          = (rand () % 2 == 0)
-                ? PLAYER_A
-                : PLAYER_B); // If the number it's even, A goes first.
-}
-
 // Change current player to opposing player.
 void
 change_turn (Room *room)
@@ -253,30 +202,6 @@ send_start_game (Room *room, Player player)
   send_to_client (client, start_message);
 }
 
-// Initialise game.
-void
-init_game (Room *room)
-{
-  if (room->state != READY_TO_START)
-    return;
-
-  // Initialising the game for the single room.
-  // This is supposed to be done for every match.
-  pthread_mutex_lock (&room_mutex);
-  init_board (&room->game.board_a);
-  init_board (&room->game.board_b);
-  place_ships (&room->game.board_a);
-  place_ships (&room->game.board_b);
-
-  const long int START_GAME_DELAY = 5; // Units: seconds.
-  room->game.start_time = time (NULL) + START_GAME_DELAY;
-
-  choose_starting_player (room);
-  pthread_mutex_unlock (&room_mutex);
-
-  log_event (LOG_INFO, "Game initialised for room with id %d.", room->id);
-}
-
 // Handle a client throughout the entire game session.
 void *
 handle_client (void *arg)
@@ -287,12 +212,14 @@ handle_client (void *arg)
 
   Client *client = NULL; // Will point to actual client in room.
   Room *room = NULL;
+  Game *game = NULL;
 
   // Search for an available room.
   pthread_mutex_lock (&room_mutex);
   for (int i = 0; i < NUMBER_OF_ROOMS; ++i)
     {
-      if (ROOMS[i].state == WAITING || ROOMS[i].state == AVAILABLE)
+      game = &ROOMS[i].game;
+      if (game->state == WAITING || game->state == AVAILABLE)
         {
           room = &ROOMS[i];
           // Is first client unassigned?
@@ -301,14 +228,14 @@ handle_client (void *arg)
               room->client_a = base_client;
               room->client_a.player = PLAYER_A;
               client = &room->client_a;
-              room->state = WAITING;
+              game->state = WAITING;
             }
           else
             {
               room->client_b = base_client;
               room->client_b.player = PLAYER_B;
               client = &room->client_b;
-              room->state = READY_TO_START;
+              game->state = READY_TO_START;
             }
           break;
         }
@@ -329,25 +256,25 @@ handle_client (void *arg)
   build_joined_matchmaking (buffer, client->player);
   send_to_client (client, buffer);
 
-  while (room->state == WAITING)
+  while (game->state == WAITING)
     {
       sleep (1);
     }
 
   // pthread_mutex_lock (&room_mutex);
-  if (room->state == READY_TO_START)
+  if (game->state == READY_TO_START)
     {
       // Send to each client the START_GAME with their boards
-      init_game (room);
+      init_game (&room->game);
       send_start_game (room, PLAYER_A);
       send_start_game (room, PLAYER_B);
-      room->state = IN_PROGRESS;
+      game->state = IN_PROGRESS;
     }
   // pthread_mutex_unlock (&room_mutex);
 
   // After second client joins.
   char recv_buffer[BUFSIZ];
-  while (!is_game_over (get_opposing_board (&room->game)))
+  while (!is_game_over (get_opposing_board (game)))
     {
       memset (recv_buffer, 0, sizeof (recv_buffer));
       int bytes_read = recv (get_current_socket_fd (room), recv_buffer,
@@ -373,7 +300,7 @@ handle_client (void *arg)
     }
 
   // Game over.
-  if (is_game_over (get_opposing_board (&room->game)))
+  if (is_game_over (get_opposing_board (game)))
     {
       char end_msg[BUFSIZ];
       build_end_game (end_msg,
