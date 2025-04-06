@@ -46,6 +46,7 @@ log_event (const char *event)
   if (log_file != NULL)
     {
       fputs (log_message, log_file);
+      fflush (log_file);
     }
 }
 
