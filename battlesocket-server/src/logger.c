@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#define DATE_FORMAT "%F %T"
 #define BUFFER_SIZE 1024
 
 FILE *log_file = NULL;
@@ -37,7 +36,8 @@ log_event (const char *event)
     }
 
   char date_as_text[BUFFER_SIZE] = { 0 };
-  strftime (date_as_text, BUFFER_SIZE, DATE_FORMAT, &datetime);
+  const char *DATE_FORMAT = "%F %T";
+  strftime (date_as_text, sizeof (date_as_text), DATE_FORMAT, &datetime);
 
   char log_message[BUFFER_SIZE * 2] = { 0 };
   snprintf (log_message, BUFFER_SIZE * 2, "%s %s\n", date_as_text, event);
