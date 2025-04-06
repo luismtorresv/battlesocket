@@ -200,6 +200,15 @@ validate_shot (Board *board, int row, int col)
   return 0;
 }
 
+// Returns 1 if all the cells of a ship have been hit and 0 otherwise.
+int
+is_ship_sunk (Board *board, int ship_index)
+{
+  if (ship_index < 0 || ship_index >= board->ship_count)
+    return 0;
+  return (board->ships[ship_index].hits == board->ships[ship_index].length);
+}
+
 // Update board at (row,col) with a hit.
 void
 update_board (Board *board, int row, int col, int hit)
@@ -229,15 +238,6 @@ is_game_over (Board *board)
         return 0;
     }
   return 1;
-}
-
-// Returns 1 if all the cells of a ship have been hit and 0 otherwise.
-int
-is_ship_sunk (Board *board, int ship_index)
-{
-  if (ship_index < 0 || ship_index >= board->ship_count)
-    return 0;
-  return (board->ships[ship_index].hits == board->ships[ship_index].length);
 }
 
 // Returns the corresponding ship at a certain (row, col).

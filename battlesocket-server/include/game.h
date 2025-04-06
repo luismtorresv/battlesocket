@@ -64,14 +64,18 @@ struct Game
 
 void init_game (Game *game);
 void init_board (Board *board);
+Player choose_starting_player (Game *game);
+
 void change_turn (Game *game);
+
 int place_ship (Board *board, const char *name, int length, int ship_index);
 void place_ships (Board *board);
+
 int validate_shot (Board *board, int row, int col);
+int is_ship_sunk (Board *board, int ship_index);
 void update_board (Board *board, int row, int col, int hit);
 int is_game_over (Board *board);
-int is_ship_sunk (Board *board, int ship_index);
+
 int get_ship_index_at (Board *board, int row, int col);
 void get_ship_data (Board *board, char *buffer, size_t buffer_size);
-Player choose_starting_player (Game *game);
 #endif
