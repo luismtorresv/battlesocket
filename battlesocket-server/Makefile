@@ -28,6 +28,7 @@ CC = gcc
 CFLAGS  = -Wall
 CFLAGS += -Wextra
 CFLAGS += -Werror
+CFLAGS += -Wpedantic
 CFLAGS += -pthread
 CFLAGS += -g
 
