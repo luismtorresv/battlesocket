@@ -1,3 +1,15 @@
+/*
+ * Implementation partly based on:
+ *
+ * 1. Michael Tuttle's 2012 blog post "Simple logging in C".
+ * URL: https://tuttlem.github.io/2012/12/08/simple-logging-in-c.html
+ *
+ * 2. Oleg Kutkov's 2019 blog post "Simple logger with STDOUT, Files and syslog
+ * support for C projects in Linux".
+ * URL:
+ * https://olegkutkov.me/2019/03/25/simple-logger-with-stdout-files-and-syslog-support-for-c-projects-in-linux/
+ */
+
 #include "logger.h"
 
 #include <errno.h>
@@ -9,6 +21,8 @@
 static FILE *log_file = NULL;
 
 int set_log_file (const char *filename);
+void __log (LogLevel level, const char *fmt, va_list ap);
+void __logv (LogLevel level, const char *fmt, ...);
 
 int
 set_log_file (const char *filename)
@@ -16,7 +30,7 @@ set_log_file (const char *filename)
   if (filename == NULL)
     return 1;
 
-  log_file = fopen (filename, "wa");
+  log_file = fopen (filename, "a");
   if (log_file == NULL)
     {
       fprintf (stderr, "error: failed to open log file \"%s\": %s\n", filename,
@@ -35,35 +49,79 @@ init_logger (const char *log_filename)
 }
 
 void
-log_event (const char *event)
+__log (LogLevel level, const char *fmt, va_list ap)
 {
-  time_t now = time (NULL);
-  if (now == (time_t)(-1))
-    {
-      fprintf (stderr, "Failed to get current time.\n");
-      exit (EXIT_FAILURE);
-    }
+  va_list save; // Copy to be used in log file.
+  FILE *stream; // We want to print to the terminal.
 
-  struct tm datetime;
-  if (localtime_r (&now, &datetime) == NULL)
-    {
-      fprintf (stderr, "Failed to get local time.\n");
-      exit (EXIT_FAILURE);
-    }
-
-  char date_as_text[BUFSIZ] = { 0 };
-  const char *DATE_FORMAT = "%F %T";
-  strftime (date_as_text, sizeof (date_as_text) - 1, DATE_FORMAT, &datetime);
-
-  char log_message[BUFSIZ * 2] = { 0 };
-  snprintf (log_message, sizeof (log_message), "%s %s\n", date_as_text, event);
-
-  fputs (log_message, stdout);
+  va_copy (save, ap);
+  stream = (level == LOG_FATAL) ? stderr : stdout;
+  vfprintf (stream, fmt, ap); // ap gets exhausted here.
   if (log_file != NULL)
     {
-      fputs (log_message, log_file);
+      vfprintf (log_file, fmt, save);
       fflush (log_file);
     }
+}
+
+void
+__logv (LogLevel level, const char *fmt, ...)
+{
+  va_list ap;
+  va_start (ap, fmt);
+  __log (level, fmt, ap);
+  va_end (ap);
+}
+
+void
+log_event (LogLevel level, const char *fmt, ...)
+{
+  const char *DATE_FORMAT = "%F %T";
+
+  va_list ap;
+  time_t now;
+  struct tm datetime;
+  char datestr[BUFSIZ] = { 0 };
+
+  if ((now = time (NULL)) == (time_t)(-1))
+    {
+      fprintf (stderr, "error: failed to get current time.\n");
+      exit (EXIT_FAILURE);
+    }
+  if (localtime_r (&now, &datetime) == NULL)
+    {
+      fprintf (stderr, "error: failed to get local time.\n");
+      exit (EXIT_FAILURE);
+    }
+  strftime (datestr, sizeof (datestr) - 1, DATE_FORMAT, &datetime);
+  __logv (level, "%s ", datestr);
+
+  switch (level)
+    {
+    case LOG_DEBUG:
+      __logv (level, "[DEBUG] ");
+      break;
+    case LOG_INFO:
+      __logv (level, "[INFO] ");
+      break;
+    case LOG_ERROR:
+      __logv (level, "[ERROR] ");
+      break;
+    case LOG_FATAL:
+      __logv (level, "[FATAL] ");
+      break;
+    default:
+      break;
+    }
+
+  // HACK: This specific call already has a variadic list.
+  // If we were to call the other function, it would overwrite the current
+  // list, which would result in garbage output.
+  va_start (ap, fmt);
+  __log (level, fmt, ap);
+  va_end (ap);
+
+  __logv (level, "\n");
 }
 
 void

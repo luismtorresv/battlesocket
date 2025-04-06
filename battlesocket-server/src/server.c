@@ -68,7 +68,7 @@ void
 send_to_client (Client *client, const char *message)
 {
   send (client->sockfd, message, strlen (message), 0);
-  log_event (message);
+  log_event (LOG_INFO, message);
 }
 
 void
@@ -180,7 +180,7 @@ handle_message (Room *room, const char *message)
   int row = row_char - 'A';
   int col = atoi (pos + 2) - 1;
 
-  log_event ("Processing shot...");
+  log_event (LOG_INFO, "Processing shot.");
 
   // The shot happens in the board of the opposing player
   int hit = validate_shot (get_opposing_board (&room->game), row, col);
@@ -201,7 +201,7 @@ handle_message (Room *room, const char *message)
   build_action_result (action_msg, result, pos, sunk,
                        room->game.current_player);
   broadcast (action_msg, room);
-  log_event ("Action message sent");
+  log_event (LOG_INFO, "Action message sent");
 }
 
 // Decides starting player using the stdlib's random number generator.
@@ -262,10 +262,7 @@ init_game (Room *room)
   choose_starting_player (room);
   pthread_mutex_unlock (&room_mutex);
 
-  char buffer[BUFSIZ];
-  snprintf (buffer, sizeof (buffer),
-            "[INFO] Game initialised for room with id %d.", room->id);
-  log_event (buffer);
+  log_event (LOG_INFO, "Game initialised for room with id %d.", room->id);
 }
 
 void *
@@ -307,14 +304,14 @@ handle_client (void *arg)
 
   if (room == NULL)
     {
-      fprintf (stderr, "[ERROR] Server is full.\n");
+      log_event (LOG_ERROR, "Server is full.");
       if (client)
         close (client->sockfd);
       return NULL;
     }
 
   // Send JOINED_MATCHMAKING
-  log_event ("New client connected");
+  log_event (LOG_INFO, "New client connected");
   char buffer[BUFSIZ];
   build_joined_matchmaking (buffer, client->player);
   send_to_client (client, buffer);
@@ -344,19 +341,19 @@ handle_client (void *arg)
                              sizeof (recv_buffer) - 1, 0);
       if (bytes_read == 0)
         {
-          log_event ("[ERROR] Client disconnection.");
+          log_event (LOG_INFO, "Client disconnection.");
           break;
         }
       else if (bytes_read == 1)
         {
-          log_event ("[ERROR] Failed to recv data.");
+          log_event (LOG_ERROR, "Failed to recv data.");
           break;
         }
 
       int newline_pos = strcspn (recv_buffer, "\r\n");
       recv_buffer[newline_pos] = '\0';
 
-      log_event ("Player message received");
+      log_event (LOG_DEBUG, "Player message received");
       handle_message (room, recv_buffer);
 
       change_turn (room);
@@ -369,7 +366,7 @@ handle_client (void *arg)
       build_end_game (end_msg,
                       room->game.current_player == PLAYER_A ? 'A' : 'B');
       broadcast (end_msg, room);
-      log_event ("Game over");
+      log_event (LOG_INFO, "Game over");
     }
 
   return NULL;
@@ -382,7 +379,7 @@ init_server ()
   int server_fd;
   if ((server_fd = socket (AF_INET, SOCK_STREAM, 0)) == -1)
     {
-      fprintf (stderr, "[Error] Failed to create socket.\n");
+      log_event (LOG_ERROR, "Failed to create socket.");
       exit (1);
     }
 
@@ -396,25 +393,25 @@ init_server ()
   if (setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse))
       == -1)
     {
-      fprintf (stderr, "[Error] Failed to set SO_REUSEADDR.\n");
+      log_event (LOG_ERROR, "[Error] Failed to set SO_REUSEADDR.");
       exit (1);
     }
 
   if (bind (server_fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr))
       == -1)
     {
-      fprintf (stderr, "[Error] Failed to bind.\n");
+      log_event (LOG_ERROR, "[Error] Failed to bind.");
       exit (1);
     }
 
   if (listen (server_fd, MAX_CLIENTS) == -1)
     {
-      fprintf (stderr, "[Error] Failed to listen.\n");
+      log_event (LOG_ERROR, "Failed to listen.");
       exit (1);
     }
 
-  log_event ("Server initialized and listening...");
-  printf ("Server created with fd %d\n", server_fd);
+  log_event (LOG_INFO, "Server initialized and listening...");
+  log_event (LOG_INFO, "Server created with fd %d.", server_fd);
 
   for (int i = 0; i < NUMBER_OF_ROOMS; ++i)
     {
@@ -454,7 +451,7 @@ run_server ()
       if (pthread_create (&thread_id, NULL, handle_client, (void *)new_client)
           != 0)
         {
-          fprintf (stderr, "[ERROR] Failed to create thread.\n");
+          log_event (LOG_ERROR, "Failed to create thread.");
           free (new_client);
         }
       pthread_detach (thread_id);
@@ -468,7 +465,7 @@ void
 cleanup_server (int server_fd)
 {
   close (server_fd);
-  log_event ("Server closed ^_____^");
+  log_event (LOG_INFO, "Server closed ^_____^");
 
   // TODO: Close all sockets of all rooms.
 }
