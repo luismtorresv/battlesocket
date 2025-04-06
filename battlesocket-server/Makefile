@@ -44,6 +44,9 @@ ASANFLAGS += -fno-omit-frame-pointer
 .PHONY: clean
 all: $(TARGET_EXEC)
 
+run: $(TARGET_EXEC)
+	@./$<
+
 # The final build step.
 $(TARGET_EXEC): $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
