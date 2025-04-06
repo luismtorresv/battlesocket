@@ -60,6 +60,15 @@ choose_starting_player (Game *game)
                 : PLAYER_B); // If the number it's even, A goes first.
 }
 
+// Change current player to opposing player.
+void
+change_turn (Game *game)
+{
+  game->current_player
+      = (game->current_player == PLAYER_A) ? PLAYER_B : PLAYER_A;
+  ;
+}
+
 // Place a ship in a game board.
 // - `name` is the type of ship.
 // - `length` is the number of cells it occupies.

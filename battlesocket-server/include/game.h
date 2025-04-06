@@ -64,6 +64,7 @@ struct Game
 
 void init_game (Game *game);
 void init_board (Board *board);
+void change_turn (Game *game);
 int place_ship (Board *board, const char *name, int length, int ship_index);
 void place_ships (Board *board);
 int validate_shot (Board *board, int row, int col);

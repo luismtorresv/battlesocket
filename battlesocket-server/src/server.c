@@ -170,17 +170,6 @@ handle_message (Room *room, const char *message)
   log_event (LOG_INFO, "Action message sent");
 }
 
-// Change current player to opposing player.
-void
-change_turn (Room *room)
-{
-  pthread_mutex_lock (&room_mutex);
-  Player next_player
-      = (room->game.current_player == PLAYER_A) ? PLAYER_B : PLAYER_A;
-  room->game.current_player = next_player;
-  pthread_mutex_unlock (&room_mutex);
-}
-
 // Send start game message to `player`.
 void
 send_start_game (Room *room, Player player)
@@ -292,7 +281,9 @@ handle_client (void *arg)
       log_event (LOG_DEBUG, "Player message received");
       handle_message (room, recv_buffer);
 
-      change_turn (room);
+      pthread_mutex_lock (&room_mutex);
+      change_turn (game);
+      pthread_mutex_unlock (&room_mutex);
     }
 
   // Game over.
