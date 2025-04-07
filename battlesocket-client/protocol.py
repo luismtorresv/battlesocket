@@ -10,6 +10,7 @@ class Protocol(Enum):
     #Los mensajes del protocolo no se deberian de poder acceder tan facilmente.
 
 def init_matchmaking(msg):
-    turn = msg.split(" ")[1] #TODO: CAMBIAR A UN ESPACIO CUANDO PAREMOS DE USAR |
-    print(f'You are player {turn}! Awaiting players...')
+    player = msg.split(" ")[1] #TODO: CAMBIAR A UN ESPACIO CUANDO PAREMOS DE USAR |
+    print(f'You are player {player}! Awaiting players...')
+    return player
 

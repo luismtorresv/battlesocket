@@ -1,17 +1,26 @@
 import socket
 import game as g
 import protocol as p
+import constants as c
 
-PORT = 8080
-cola = []
+class Status:
+    def __init__(self):
+        self.game = None
+        self.player = None
 
+    def set_player(self, player):
+        self.player = player
+    
+    def set_game(self,game):
+        self.game = game
 
 def init_socket():
     #Inicializar el socket
-    
+    cola = []
+    client_status = Status() #TODO: Change this.
 
     SERVER = socket.gethostbyname(socket.gethostname())
-    ADDR = (SERVER, PORT)
+    ADDR = (SERVER, c.PORT)
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect(ADDR)
 
@@ -25,27 +34,38 @@ def init_socket():
             cola.append(mensaje.split("\n"))
             
         current_message = cola.pop()[0] #La cola contiene el mensaje junto con la cadena vacia. Solo seleccionamos el mensaje.
-        response = read_message(current_message)
-        
+        read_message(current_message,client_status)
+        if client_status.game != None:
+            if client_status.game.has_started:
+                protocol_msg = client_status.game.shoot(client_status.player)
+                if protocol_msg !=0:
+                    print(protocol_msg)
+                    client.send(protocol_msg.encode("ascii"))  
+        else: 
+            continue
 
-def read_message(msg):
+
+
+def read_message(msg,status):
     msg = msg.replace('|',' ') #TODO: CAMBIAR A UN ESPACIO CUANDO PAREMOS DE USAR |. Esta linea es provisional.
     prot_message = msg.split(" ")[0] 
     prot_message = p.Protocol[f'MSG_{prot_message}']
     match prot_message:
         case p.Protocol.MSG_START_GAME:
-            data = g.start_game(msg)
-            print(data[2])
+            status.set_game(g.start_game(msg))
+            status.game.print_boards()
         case p.Protocol.MSG_HIT:
             #recibio un hit
+            print(msg)
             pass
         case p.Protocol.MSG_MISS:
             #Recibio un miss
+            print(msg)
             pass
         case p.Protocol.MSG_JOINED_MATCHMAKING:
             #Recibio un inicio de conexion
-            p.init_matchmaking(msg)
-            pass
+            player = p.init_matchmaking(msg)
+            status.set_player(player)
         case p.Protocol.MSG_END_GAME:
             #Recibio un final de juego
             pass
