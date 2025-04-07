@@ -119,11 +119,11 @@ get_current_client (Room *room)
 
 // Handle a message of the protocol.
 void
-handle_message (Room *room, const char *message)
+handle_message (Room *room, Client *client, const char *message)
 {
   if (parse_message (message) != MSG_SHOT)
     {
-      send_to_client (get_current_client (room), "BAD_REQUEST\n");
+      send_to_client (client, "BAD_REQUEST\n");
       return;
     }
 
@@ -131,7 +131,7 @@ handle_message (Room *room, const char *message)
   char *separator = strchr (message, ' ');
   if (separator == NULL)
     {
-      send_to_client (get_current_client (room), "BAD_REQUEST\n");
+      send_to_client (client, "BAD_REQUEST\n");
       return;
     }
   char pos[16] = { 0 };
@@ -139,7 +139,7 @@ handle_message (Room *room, const char *message)
 
   if (pos[0] < 'A' || pos[0] > 'J' || pos[1] != '-')
     {
-      send_to_client (get_current_client (room), "BAD_REQUEST\n");
+      send_to_client (client, "BAD_REQUEST\n");
       return;
     }
   char row_char = pos[0];
@@ -279,7 +279,7 @@ handle_client (void *arg)
       recv_buffer[newline_pos] = '\0';
 
       log_event (LOG_DEBUG, "Player message received");
-      handle_message (room, recv_buffer);
+      handle_message (room, client, recv_buffer);
 
       pthread_mutex_lock (&room_mutex);
       change_turn (game);
