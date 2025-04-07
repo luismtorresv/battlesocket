@@ -60,7 +60,10 @@ $(BUILD_DIR)/%.c.o: %.c
 $(BUILD_DIR)/memcheck.out: $(OBJS)
 	mkdir -p $(dir $@)
 	$(CC) $(ASANFLAGS) $(CFLAGS) -o $@ $^
-	./$@
+
+.PHONY: memcheck
+memcheck: $(BUILD_DIR)/memcheck.out
+	./$<
 	@echo "Memory check passed"
 
 .PHONY: clean
