@@ -75,12 +75,7 @@ place_ship (Board *board, const char *name, int length, int ship_index)
 void
 place_ships (Board *board)
 {
-  static int seeded = 0;
-  if (!seeded)
-    {
-      srand (time (NULL)); // Set seed using current time.
-      seeded = 1;
-    }
+  srand (time (NULL)); // Set seed using current time.
 
   // 1 Carrier (5), 1 Battleship (4), 2 Cruisers (3), 2 Destroyers (2), 3
   // Submarines (1)

@@ -73,52 +73,21 @@ send_start_game (Room *room, Player player)
   send_to_client (client, start_message);
 }
 
-// Disconnection handler.
-void
-handle_disconnect (Room *room)
-{
-  pthread_mutex_lock (&room_mutex);
-  if (room->disconnected)
-    {
-      pthread_mutex_unlock (&room_mutex);
-      return;
-    }
-  room->disconnected = true;
-
-  Client *disconnected_client = get_current_client (room);
-  Client *other = (disconnected_client->player == PLAYER_A) ? &room->client_b
-                                                            : &room->client_a;
-  if (other->sockfd != 0)
-    {
-      send_to_client (other, "END_GAME D\n"); // 'D' for disconnection
-      close (other->sockfd);
-    }
-
-  memset (&room->game, 0, sizeof (Game));
-  room->client_a.sockfd = 0;
-  room->client_b.sockfd = 0;
-  room->game.state = AVAILABLE;
-  pthread_mutex_unlock (&room_mutex);
-
-  log_event (LOG_INFO, "Room %d reset", room->id);
-}
-
 // Handle for the game.
 void *
 handle_game (void *arg)
 {
-
   Room *room = (Room *)arg;
+
+  init_game (&room->game);
 
   send_start_game (room, PLAYER_A);
   send_start_game (room, PLAYER_B);
 
   room->game.state = IN_PROGRESS;
-  room->disconnected = false;
 
   char recv_buffer[BUFSIZ] = { 0 };
-  while (!room->disconnected
-         && !is_game_over (get_opposing_board (&room->game)))
+  while (!is_game_over (get_opposing_board (&room->game)))
     {
       memset (recv_buffer, 0, sizeof (recv_buffer));
       int bytes_read = recv (get_current_socket_fd (room), recv_buffer,
@@ -126,7 +95,6 @@ handle_game (void *arg)
       if (bytes_read == 0)
         {
           log_event (LOG_INFO, "Client disconnection.");
-          handle_disconnect (room);
           break;
         }
       else if (bytes_read <= 1)
@@ -138,11 +106,11 @@ handle_game (void *arg)
       recv_buffer[newline_pos] = '\0';
 
       log_event (LOG_DEBUG, "Player message received");
-      handle_message (room, get_current_client(room), recv_buffer);
+      handle_message (room, get_current_client (room), recv_buffer);
       change_turn (&room->game);
     }
 
-  if (!room->disconnected && is_game_over (get_opposing_board (&room->game)))
+  if (is_game_over (get_opposing_board (&room->game)))
     {
       char end_msg[BUFSIZ] = { 0 };
       build_end_game (end_msg,
@@ -218,11 +186,11 @@ handle_client (void *arg)
     }
 
   // If the room is READY_TO_START, create the thread to manage the game.
-  if (room->game.state == READY_TO_START)
+  if (game->state == READY_TO_START)
     {
-      init_game (&room->game);
-      pthread_create (&room->thread, NULL, handle_game, room);
-      pthread_detach (room->thread);
+      pthread_t thread_id;
+      pthread_create (&thread_id, NULL, handle_game, room);
+      pthread_detach (thread_id);
     }
 
   return NULL;

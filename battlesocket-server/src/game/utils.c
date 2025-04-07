@@ -71,7 +71,7 @@ get_ship_data (Board *board, char *buffer, size_t buffer_size)
           int c = s->start_col + (s->orientation == 0 ? j : 0);
           char cell[16];
           snprintf (cell, sizeof (cell), "%c%d", 'A' + r, c + 1);
-          
+
           // Using snprintf.
           if (j == 0)
             {
@@ -85,19 +85,19 @@ get_ship_data (Board *board, char *buffer, size_t buffer_size)
         }
       // Using snprintf.
       int needed = snprintf (temp + current_pos, buffer_size - current_pos,
-        "%s:%s; ", ship_id, coords);
+                             "%s:%s; ", ship_id, coords);
 
       if (needed < 0 || ((size_t)current_pos + (size_t)needed) >= buffer_size)
         break;
       current_pos += needed;
     }
 
-  // Delete the last ";" if exists.
+  // Delete the last ";" if it exists.
   if (current_pos >= 2)
     {
       temp[current_pos - 2] = '\0';
     }
-      
+
   strncpy (buffer, temp, buffer_size - 1);
   buffer[buffer_size - 1] = '\0';
 }
