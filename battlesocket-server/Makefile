@@ -1,7 +1,7 @@
 # Template adapted from that of Job Vranish
 # (https://spin.atomicobject.com/2016/08/26/makefile-c-projects/)
 
-TARGET_EXEC := server
+TARGET_EXEC := battlesocket-server
 
 BUILD_DIR := ./build
 SRC_DIRS  := ./src
@@ -65,7 +65,7 @@ $(BUILD_DIR)/memcheck.out: $(OBJS)
 
 .PHONY: clean
 clean:
-	rm -r $(BUILD_DIR)
+	rm -r $(TARGET_EXEC) $(BUILD_DIR)
 
 # Include the .d makefiles. The - at the front suppresses the errors of missing
 # Makefiles. Initially, all the .d files will be missing, and we don't want those
