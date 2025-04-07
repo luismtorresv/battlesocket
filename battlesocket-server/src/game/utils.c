@@ -55,15 +55,15 @@ void
 get_ship_data (Board *board, char *buffer, size_t buffer_size)
 {
   char temp[BUFSIZ] = "";
-  int counts[26] = { 0 }; // This is to count how many ships of each type,
-                          // using the first letter of the name as a key
+  int current_pos = 0;
+
   for (int i = 0; i < board->ship_count; i++)
     {
       Ship *s = &board->ships[i];
-      int idx = s->name[0] - 'a';
-      counts[idx]++;
+
+      // Create unique id using index.
       char ship_id[32];
-      snprintf (ship_id, sizeof (ship_id), "%s%d", s->name, counts[idx]);
+      snprintf (ship_id, sizeof (ship_id), "%s%d", s->name, i + 1);
       char coords[128] = "";
       for (int j = 0; j < s->length; j++)
         {
@@ -71,16 +71,33 @@ get_ship_data (Board *board, char *buffer, size_t buffer_size)
           int c = s->start_col + (s->orientation == 0 ? j : 0);
           char cell[16];
           snprintf (cell, sizeof (cell), "%c%d", 'A' + r, c + 1);
-          strcat (coords, cell);
-          if (j < s->length - 1)
-            strcat (coords, " ");
+          
+          // Using snprintf.
+          if (j == 0)
+            {
+              snprintf (coords, sizeof (coords), "%s", cell);
+            }
+          else
+            {
+              snprintf (coords + strlen (coords),
+                        sizeof (coords) - strlen (coords), " %s", cell);
+            }
         }
-      strcat (temp, ship_id);
-      strcat (temp, ":");
-      strcat (temp, coords);
-      if (i < board->ship_count - 1)
-        strcat (temp, "; ");
+      // Using snprintf.
+      int needed = snprintf (temp + current_pos, buffer_size - current_pos,
+        "%s:%s; ", ship_id, coords);
+
+      if (needed < 0 || ((size_t)current_pos + (size_t)needed) >= buffer_size)
+        break;
+      current_pos += needed;
     }
+
+  // Delete the last ";" if exists.
+  if (current_pos >= 2)
+    {
+      temp[current_pos - 2] = '\0';
+    }
+      
   strncpy (buffer, temp, buffer_size - 1);
   buffer[buffer_size - 1] = '\0';
 }

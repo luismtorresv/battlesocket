@@ -1,5 +1,7 @@
 #include "server.h"
 
+pthread_mutex_t room_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 typedef struct ServerInfo ServerInfo;
 struct ServerInfo
 {

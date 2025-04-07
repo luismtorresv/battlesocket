@@ -16,6 +16,8 @@
 #define SERVER_PORT 8080
 #define MAX_CLIENTS 2
 
+extern pthread_mutex_t room_mutex;
+
 typedef struct Room Room;
 typedef struct Client Client;
 typedef struct ThreadInfo ThreadInfo;
@@ -34,6 +36,8 @@ struct Room
   Client client_a;
   Client client_b;
   Game game;
+  bool disconnected; // Flag to avoid repetition while handling disconnections.
+  pthread_t thread;
 };
 
 struct ThreadInfo
@@ -58,6 +62,8 @@ Client *get_current_client (Room *room);
 
 void handle_message (Room *room, Client *client, char *message);
 void send_start_game (Room *room, Player player);
+void handle_disconnect (Room *room);
+void *handle_game (void *arg);
 void *handle_client (void *arg);
 
 void send_to_client (Client *client, const char *message);

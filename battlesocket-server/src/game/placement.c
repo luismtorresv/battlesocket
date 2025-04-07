@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 // Generate a random integer between min and max.
 static int
@@ -74,57 +75,64 @@ place_ship (Board *board, const char *name, int length, int ship_index)
 void
 place_ships (Board *board)
 {
+  static int seeded = 0;
+  if (!seeded)
+    {
+      srand (time (NULL)); // Set seed using current time.
+      seeded = 1;
+    }
+
   // 1 Carrier (5), 1 Battleship (4), 2 Cruisers (3), 2 Destroyers (2), 3
   // Submarines (1)
   int ship_index = 0;
   // Carrier
   if (place_ship (board, "carrier", 5, ship_index) == -1)
     {
-      perror ("Error placing carrier");
+      fprintf (stderr, "Error placing carrier\n");
     }
   ship_index++;
   // Battleship
   if (place_ship (board, "battleship", 4, ship_index) == -1)
     {
-      perror ("Error placing battleship");
+      fprintf (stderr, "Error placing battleship\n");
     }
   ship_index++;
   // 2 Cruisers
   if (place_ship (board, "cruiser", 3, ship_index) == -1)
     {
-      perror ("Error placing cruiser1");
+      fprintf (stderr, "Error placing cruiser1\n");
     }
   ship_index++;
   if (place_ship (board, "cruiser", 3, ship_index) == -1)
     {
-      perror ("Error placing cruiser2");
+      fprintf (stderr, "Error placing cruiser2\n");
     }
   ship_index++;
   // 2 Destroyers
   if (place_ship (board, "destroyer", 2, ship_index) == -1)
     {
-      perror ("Error placing destroyer1");
+      fprintf (stderr, "Error placing destroyer1\n");
     }
   ship_index++;
   if (place_ship (board, "destroyer", 2, ship_index) == -1)
     {
-      perror ("Error placing destroyer2");
+      fprintf (stderr, "Error placing destroyer2\n");
     }
   ship_index++;
   // 3 Submarines
   if (place_ship (board, "submarine", 1, ship_index) == -1)
     {
-      perror ("Error placing submarine1");
+      fprintf (stderr, "Error placing submarine1\n");
     }
   ship_index++;
   if (place_ship (board, "submarine", 1, ship_index) == -1)
     {
-      perror ("Error placing submarine2");
+      fprintf (stderr, "Error placing submarine2\n");
     }
   ship_index++;
   if (place_ship (board, "submarine", 1, ship_index) == -1)
     {
-      perror ("Error placing submarine3");
+      fprintf (stderr, "Error placing submarine3\n");
     }
   ship_index++;
 }
