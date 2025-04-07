@@ -43,7 +43,7 @@ struct ThreadInfo
   Room *rooms;
 };
 
-void run_server (Room *rooms);
+void run_server ();
 
 Board *get_board (Game *game, Player player);
 Board *get_current_board (Game *game);

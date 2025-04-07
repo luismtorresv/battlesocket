@@ -77,11 +77,12 @@ init_server (Room *rooms)
 
 // Accept incoming client connections and dispatch them.
 void
-run_server (Room *rooms)
+run_server ()
 {
+  Room rooms[NUMBER_OF_ROOMS];
   ServerInfo server = init_server (rooms);
-  int client_socket;
 
+  int client_socket;
   struct sockaddr_in client_addr;
   socklen_t client_addr_len;
   client_addr_len = sizeof (client_addr);

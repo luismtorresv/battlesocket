@@ -12,8 +12,7 @@ main (int argc, char **argv)
   init_logger (log_filename);
 
   // Actual program.
-  Room rooms[NUMBER_OF_ROOMS];
-  run_server (rooms);
+  run_server ();
 
   // Unloading.
   close_logger ();
