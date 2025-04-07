@@ -6,7 +6,6 @@ change_turn (Game *game)
 {
   game->current_player
       = (game->current_player == PLAYER_A) ? PLAYER_B : PLAYER_A;
-  ;
 }
 
 // Validate a shot in `row` and `col`.
