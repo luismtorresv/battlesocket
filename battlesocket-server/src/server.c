@@ -269,7 +269,7 @@ handle_client (void *arg)
           log_event (LOG_INFO, "Client disconnection.");
           break;
         }
-      else if (bytes_read == 1)
+      else if (bytes_read == -1)
         {
           log_event (LOG_ERROR, "Failed to recv data.");
           break;
