@@ -38,6 +38,15 @@ init_server (Room *rooms)
       exit (1);
     }
 
+  int keepalive = 1;
+  if (setsockopt (server.fd, SOL_SOCKET, SO_KEEPALIVE, &keepalive,
+                  sizeof (reuse))
+      == -1)
+    {
+      log_event (LOG_ERROR, "Failed to set SO_KEEPALIVE.");
+      exit (1);
+    }
+
   if (bind (server.fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr))
       == -1)
     {
