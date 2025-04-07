@@ -119,8 +119,11 @@ get_current_client (Room *room)
 
 // Handle a message of the protocol.
 void
-handle_message (Room *room, Client *client, const char *message)
+handle_message (Room *room, Client *client, char *message)
 {
+  int newline_pos = strcspn (message, "\r\n");
+  message[newline_pos] = '\0';
+
   if (parse_message (message) != MSG_SHOT)
     {
       send_to_client (client, "BAD_REQUEST\n");
@@ -258,10 +261,9 @@ handle_client (void *arg)
   // pthread_mutex_unlock (&room_mutex);
 
   // After second client joins.
-  char recv_buffer[BUFSIZ];
   while (!is_game_over (get_opposing_board (game)))
     {
-      memset (recv_buffer, 0, sizeof (recv_buffer));
+      char recv_buffer[BUFSIZ] = { 0 };
       int bytes_read
           = recv (client->sockfd, recv_buffer, sizeof (recv_buffer) - 1, 0);
       if (bytes_read == 0)
@@ -274,11 +276,9 @@ handle_client (void *arg)
           log_event (LOG_ERROR, "Failed to recv data.");
           break;
         }
+      log_event (LOG_DEBUG, "Received message of length %d from client %c.",
+                 bytes_read, client->player);
 
-      int newline_pos = strcspn (recv_buffer, "\r\n");
-      recv_buffer[newline_pos] = '\0';
-
-      log_event (LOG_DEBUG, "Player message received");
       handle_message (room, client, recv_buffer);
 
       pthread_mutex_lock (&room_mutex);
