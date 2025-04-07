@@ -320,14 +320,14 @@ init_server ()
   if (setsockopt (server_fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse))
       == -1)
     {
-      log_event (LOG_ERROR, "[Error] Failed to set SO_REUSEADDR.");
+      log_event (LOG_ERROR, "Failed to set SO_REUSEADDR.");
       exit (1);
     }
 
   if (bind (server_fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr))
       == -1)
     {
-      log_event (LOG_ERROR, "[Error] Failed to bind.");
+      log_event (LOG_ERROR, "Failed to bind.");
       exit (1);
     }
 
