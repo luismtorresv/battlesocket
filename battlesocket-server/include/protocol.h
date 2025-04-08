@@ -19,6 +19,7 @@ void build_start_game (char *buffer, long unix_time, Player initial_player,
 void build_joined_matchmaking (char *buffer, Player letter);
 void build_action_result (char *buffer, const char *result, const char *pos,
                           int sunk, const Player current_player);
+void build_bad_request(char *buffer, const char *badrequest, const Player current_player);
 void build_shot (char *buffer, const char *pos);
 void build_end_game (char *buffer, const char winner);
 

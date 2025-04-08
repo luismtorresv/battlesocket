@@ -37,6 +37,21 @@ get_client (Room *room, Player player)
     }
 }
 
+// Returns a pointer to the opposing client assigned to the opossing player.
+Client *
+get_opposing_client (Room *room, Player player)
+{
+  switch (player)
+    {
+    case PLAYER_A:
+      return &room->client_b;
+    case PLAYER_B:
+      return &room->client_a;
+    default:
+      return NULL;
+    }
+}
+
 // Returns a pointer to the client of the current player.
 Client *
 get_current_client (Room *room)

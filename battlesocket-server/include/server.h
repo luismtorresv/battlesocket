@@ -55,6 +55,7 @@ void get_ship_data (Board *board, char *buffer, size_t buffer_size);
 bool is_room_available (Room *room);
 int get_current_socket_fd (Room *room);
 Client *get_client (Room *room, Player player);
+Client *get_opposing_client(Room *room, Player player);
 Client *get_current_client (Room *room);
 
 void handle_message (Room *room, Client *client, char *message);

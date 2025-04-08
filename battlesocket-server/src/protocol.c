@@ -50,6 +50,15 @@ build_action_result (char *buffer, const char *result, const char *pos,
   sprintf (buffer, format, result, pos, next_player);
 }
 
+// Build string for response to a bad request message.
+void
+build_bad_request (char *buffer, const char *badrequest,
+                   const Player current_player)
+{
+  char next_player = current_player == PLAYER_A ? PLAYER_B : PLAYER_A;
+  sprintf (buffer, "%s next:%c\n", badrequest, next_player);
+}
+
 // Build string for SHOT message.
 // Not actually used, as this is the server.
 void
