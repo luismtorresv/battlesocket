@@ -125,7 +125,7 @@ handle_game (void *arg)
 
   send_start_game (room, PLAYER_A);
   send_start_game (room, PLAYER_B);
-
+  send_to_client(get_current_client (room), "YOUR_TURN\n");
   pthread_mutex_lock (mutex);
   game->state = IN_PROGRESS;
   pthread_mutex_unlock (mutex);
