@@ -25,7 +25,7 @@ class Game:
     def __init__(self,player_board,start_time,current_player):
         self.player_board = self.place_ships(player_board)
         self.opposite_player_board = Board(10)
-        self.has_started = True
+        self.status = 'ACTIVE'
         self.start_time = start_time
         self.current_player = current_player
     
@@ -44,34 +44,35 @@ class Game:
             if ship[0].__contains__('cruiser'):
                 player_board.place_coor(ship[1],ship[0][1])  #En el caso del cruiser, se pone minuscula
             else:
-                player_board.place_coor(ship[1],ship[0][1].upper()) #La primera letra de cada barco es puesta en el board. TODO: Manejar el whitespace en el mensaje.
+                player_board.place_coor(ship[1],ship[0][1].upper())
         return player_board
     
     def print_boards(self):
-        print(f'Opposing Player:\n {self.opposite_player_board} \nYour board: \n{self.player_board}')
+        print(f'Opposing Player:\n{self.opposite_player_board} \nYour board: \n{self.player_board}')
     
     def place_hit_or_miss(self,msg,player):
         if msg.__contains__('SUNK'):
             NotImplementedError
         else:
             msg_type,coordinate,turn = msg.split(" ")
-
             print(f'{msg_type} en la coordenada: {coordinate}')
 
-            coordinate = coordinate.replace("-","")
             translated_coor = translate(coordinate)[0] #por la naturaleza de la funcion translated, translated_coordinates es una lista de 1 solo elemento.
-            if turn != player:
+            letter = turn[-1]   #Ignores 'Next:', only grabs the player
+
+            if letter != player:    #If the messages letter is different from the current players
                 self.opposite_player_board.update_board(msg_type,translated_coor)
             else:
-                self.player_board.update_board(msg_type,translated_coor)
+                if msg_type != 'MISS':
+                    self.player_board.update_board(msg_type,translated_coor)
 
-        self.change_current_player(turn)
+        self.change_current_player(letter)
 
     def shoot(self):
         coordinate = input("\n")
         coordinate = coordinate.upper()
         coordinate.strip()
-        return f'SHOT {coordinate[0]}-{coordinate[1]}'
+        return f'SHOT {coordinate[0]}{coordinate[1]}'
         
     def change_current_player(self,turn):
         self.current_player = turn
