@@ -17,51 +17,61 @@ handle_message (Room *room, Client *client, char *message)
 
   Player current_player = room->game.current_player;
 
-  char action[16] = {0};
-  char pos_str[16] = {0};
-  if (sscanf(message, "%15s %15s", action, pos_str) != 2) {
-    char bad_req_msg[BUFSIZ] = {0};
-    build_bad_request(bad_req_msg, "BAD_REQUEST", current_player);
-    send_to_client(client, bad_req_msg);
+  char action[16] = { 0 };
+  char pos_str[16] = { 0 };
+  if (sscanf (message, "%15s %15s", action, pos_str) != 2)
+    {
+      char bad_req_msg[BUFSIZ] = { 0 };
+      build_bad_request (bad_req_msg, "BAD_REQUEST", current_player);
+      send_to_client (client, bad_req_msg);
 
-    // Notify the opposing player that is their turn.
-    send_to_client(get_opposing_client(room, current_player), "YOUR_TURN\n");
-    return;
-  }
-  if (strcmp(action, "SHOT") != 0) {
-    char bad_req_msg[BUFSIZ] = {0};
-    build_bad_request(bad_req_msg, "BAD_REQUEST", current_player);
-    send_to_client(client, bad_req_msg);
+      // Notify the opposing player that is their turn.
+      send_to_client (get_opposing_client (room, current_player),
+                      "YOUR_TURN\n");
+      return;
+    }
+  if (strcmp (action, "SHOT") != 0)
+    {
+      char bad_req_msg[BUFSIZ] = { 0 };
+      build_bad_request (bad_req_msg, "BAD_REQUEST", current_player);
+      send_to_client (client, bad_req_msg);
 
-    // Notify the opposing player that is their turn.
-    send_to_client(get_opposing_client(room, current_player), "YOUR_TURN\n");
-    return;
-  }
+      // Notify the opposing player that is their turn.
+      send_to_client (get_opposing_client (room, current_player),
+                      "YOUR_TURN\n");
+      return;
+    }
 
   char row_char;
   int col_val;
   int consumed = 0; // This variable will keep the characters consumed.
-                    // We use %n to obtain the number of characters read while parsing.
-                    // If there are characters remaining after the `col_val`, it is a bad request.
+                    // We use %n to obtain the number of characters read while
+                    // parsing. If there are characters remaining after the
+                    // `col_val`, it is a bad request.
 
-  if (sscanf(pos_str, " %c%d%n", &row_char, &col_val, &consumed) != 2 || pos_str[consumed] != '\0') {
-    char bad_req_msg[BUFSIZ] = {0};
-    build_bad_request(bad_req_msg, "BAD_REQUEST", current_player);
-    send_to_client(client, bad_req_msg);
+  if (sscanf (pos_str, " %c%d%n", &row_char, &col_val, &consumed) != 2
+      || pos_str[consumed] != '\0')
+    {
+      char bad_req_msg[BUFSIZ] = { 0 };
+      build_bad_request (bad_req_msg, "BAD_REQUEST", current_player);
+      send_to_client (client, bad_req_msg);
 
-    // Notify the opposing player that is their turn.
-    send_to_client(get_opposing_client(room, current_player), "YOUR_TURN\n");
-    return;
-  }
-  if (row_char < 'A' || row_char > 'J' || col_val < 1 || col_val > BOARD_SIZE) {
-    char bad_req_msg[BUFSIZ] = {0};
-    build_bad_request(bad_req_msg, "BAD_REQUEST", current_player);
-    send_to_client(client, bad_req_msg);
+      // Notify the opposing player that is their turn.
+      send_to_client (get_opposing_client (room, current_player),
+                      "YOUR_TURN\n");
+      return;
+    }
+  if (row_char < 'A' || row_char > 'J' || col_val < 1 || col_val > BOARD_SIZE)
+    {
+      char bad_req_msg[BUFSIZ] = { 0 };
+      build_bad_request (bad_req_msg, "BAD_REQUEST", current_player);
+      send_to_client (client, bad_req_msg);
 
-    // Notify the opposing player that is their turn.
-    send_to_client(get_opposing_client(room, current_player), "YOUR_TURN\n");
-    return;
-  }
+      // Notify the opposing player that is their turn.
+      send_to_client (get_opposing_client (room, current_player),
+                      "YOUR_TURN\n");
+      return;
+    }
 
   int row = row_char - 'A';
   int col = col_val - 1;
@@ -89,7 +99,7 @@ handle_message (Room *room, Client *client, char *message)
   broadcast (action_msg, room);
 
   // Notify the opposing player that is their turn.
-  send_to_client(get_opposing_client(room, current_player), "YOUR_TURN\n");
+  send_to_client (get_opposing_client (room, current_player), "YOUR_TURN\n");
 
   log_event (LOG_INFO, "Action message sent");
 }
@@ -125,7 +135,7 @@ handle_game (void *arg)
 
   send_start_game (room, PLAYER_A);
   send_start_game (room, PLAYER_B);
-  send_to_client(get_current_client (room), "YOUR_TURN\n");
+  send_to_client (get_current_client (room), "YOUR_TURN\n");
   pthread_mutex_lock (mutex);
   game->state = IN_PROGRESS;
   pthread_mutex_unlock (mutex);
