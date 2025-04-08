@@ -15,8 +15,6 @@ handle_message (Room *room, Client *client, char *message)
   int newline_pos = strcspn (message, "\r\n");
   message[newline_pos] = '\0';
 
-  Player current_player = room->game.current_player;
-
   char action[16] = { 0 };
   char pos_str[16] = { 0 };
   if (sscanf (message, "%15s %15s", action, pos_str) != 2)
