@@ -42,7 +42,6 @@ init_board (Board *board)
 Player
 choose_starting_player (Game *game)
 {
-  srand (time (NULL)); // Set seed using current time.
   return (game->current_player
           = (rand () % 2 == 0)
                 ? PLAYER_A

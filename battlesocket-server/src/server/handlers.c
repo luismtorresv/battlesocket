@@ -85,7 +85,7 @@ send_start_game (Room *room, Player player)
   send_to_client (client, start_message);
 }
 
-// Handle for the game.
+// Handler for the game.
 void *
 handle_game (void *arg)
 {
