@@ -34,6 +34,7 @@ struct Room
   Client client_a;
   Client client_b;
   Game game;
+  pthread_mutex_t mutex;
 };
 
 struct ThreadInfo

@@ -4,7 +4,6 @@ typedef struct ServerInfo ServerInfo;
 struct ServerInfo
 {
   int fd;
-  pthread_mutex_t mutex;
   Room *rooms;
 };
 
@@ -62,13 +61,6 @@ init_server (Room *rooms)
 
   log_event (LOG_INFO, "Server listening with file descriptor %d.", server.fd);
 
-  if (pthread_mutex_init (&server.mutex, NULL) != 0)
-    {
-      log_event (LOG_FATAL, "Failed to initialise mutex.");
-      cleanup_server (server.fd);
-      exit (1);
-    }
-
   if (!rooms)
     {
       log_event (LOG_FATAL, "Null pointer to rooms.");
@@ -79,6 +71,12 @@ init_server (Room *rooms)
   for (int i = 0; i < NUMBER_OF_ROOMS; ++i)
     {
       server.rooms[i].id = i;
+      if (pthread_mutex_init (&server.rooms[i].mutex, NULL) != 0)
+        {
+          log_event (LOG_FATAL, "Failed to initialise mutex for room %d.", i);
+          cleanup_server (server.fd);
+          exit (1);
+        }
     }
 
   return server;
@@ -104,7 +102,6 @@ run_server ()
 
       // Set up the argument to the thread.
       ThreadInfo thread_info;
-      thread_info.mutex = server.mutex;
       thread_info.client.addr = client_addr;
       thread_info.client.sockfd = client_socket;
       thread_info.rooms = server.rooms;
@@ -114,8 +111,7 @@ run_server ()
 
       // Create the actual goddamn thread.
       if (pthread_create (&thread_id, NULL, handle_client,
-                          (void *)new_thread_info)
-          != 0)
+                          (void *)new_thread_info))
         {
           log_event (LOG_ERROR, "Failed to create thread.");
           free (new_thread_info);

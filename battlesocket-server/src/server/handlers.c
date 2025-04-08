@@ -4,6 +4,14 @@
 void
 handle_message (Room *room, Client *client, char *message)
 {
+  Game *game = &room->game;
+  pthread_mutex_t *mutex = &room->mutex;
+
+  pthread_mutex_lock (mutex);
+  Board *opposing_board = get_opposing_board (game);
+  Player current_player = game->current_player;
+  pthread_mutex_unlock (mutex);
+
   int newline_pos = strcspn (message, "\r\n");
   message[newline_pos] = '\0';
 
@@ -35,23 +43,23 @@ handle_message (Room *room, Client *client, char *message)
   log_event (LOG_INFO, "Processing shot.");
 
   // The shot happens in the board of the opposing player
-  int hit = validate_shot (get_opposing_board (&room->game), row, col);
-  update_board (get_opposing_board (&room->game), row, col, hit);
+  int hit = validate_shot (opposing_board, row, col);
+  pthread_mutex_lock (mutex);
+  update_board (opposing_board, row, col, hit);
+  pthread_mutex_unlock (mutex);
 
   int sunk = 0;
   if (hit)
     {
-      int ship_index
-          = get_ship_index_at (get_opposing_board (&room->game), row, col);
+      int ship_index = get_ship_index_at (opposing_board, row, col);
       if (ship_index != -1)
-        sunk = is_ship_sunk (get_opposing_board (&room->game), ship_index);
+        sunk = is_ship_sunk (opposing_board, ship_index);
     }
 
   const char *result = hit ? "HIT" : "MISS";
   char action_msg[BUFSIZ];
   memset (action_msg, 0, sizeof (action_msg));
-  build_action_result (action_msg, result, pos, sunk,
-                       room->game.current_player);
+  build_action_result (action_msg, result, pos, sunk, current_player);
   broadcast (action_msg, room);
   log_event (LOG_INFO, "Action message sent");
 }
@@ -78,16 +86,22 @@ void *
 handle_game (void *arg)
 {
   Room *room = (Room *)arg;
+  Game *game = &room->game;
+  pthread_mutex_t *mutex = &room->mutex;
 
+  pthread_mutex_lock (mutex);
   init_game (&room->game);
+  pthread_mutex_unlock (mutex);
 
   send_start_game (room, PLAYER_A);
   send_start_game (room, PLAYER_B);
 
-  room->game.state = IN_PROGRESS;
+  pthread_mutex_lock (mutex);
+  game->state = IN_PROGRESS;
+  pthread_mutex_unlock (mutex);
 
   char recv_buffer[BUFSIZ] = { 0 };
-  while (!is_game_over (get_opposing_board (&room->game)))
+  while (!is_game_over (get_opposing_board (game)))
     {
       memset (recv_buffer, 0, sizeof (recv_buffer));
       int bytes_read = recv (get_current_socket_fd (room), recv_buffer,
@@ -107,17 +121,23 @@ handle_game (void *arg)
 
       log_event (LOG_DEBUG, "Player message received");
       handle_message (room, get_current_client (room), recv_buffer);
-      change_turn (&room->game);
+
+      pthread_mutex_lock (mutex);
+      change_turn (game);
+      pthread_mutex_unlock (mutex);
     }
 
-  if (is_game_over (get_opposing_board (&room->game)))
+  pthread_mutex_lock (mutex);
+  if (is_game_over (get_opposing_board (game)))
     {
       char end_msg[BUFSIZ] = { 0 };
       build_end_game (end_msg,
                       room->game.current_player == PLAYER_A ? 'A' : 'B');
       broadcast (end_msg, room);
+      game->state = FINISHED;
       log_event (LOG_INFO, "Game over");
     }
+  pthread_mutex_unlock (mutex);
 
   return NULL;
 }
@@ -130,49 +150,54 @@ handle_client (void *arg)
   ThreadInfo thread_info = *(ThreadInfo *)arg;
   free (arg);
 
-  pthread_mutex_t *mutex = &thread_info.mutex;
   Room *rooms = thread_info.rooms;
   Client base_client = thread_info.client;
-
-  Client *client = NULL; // Will point to actual client in room.
   Room *room = NULL;
-  Game *game = NULL;
 
   // Search for an available room.
-  pthread_mutex_lock (mutex);
   for (int i = 0; i < NUMBER_OF_ROOMS; ++i)
     {
-      game = &(rooms[i].game);
+      Game *game = &(rooms[i].game);
+      pthread_mutex_lock (&rooms[i].mutex);
       if (game->state == WAITING || game->state == AVAILABLE)
         {
           room = &rooms[i];
-          // Is first client unassigned?
-          if (room->client_a.sockfd == 0)
-            {
-              room->client_a = base_client;
-              room->client_a.player = PLAYER_A;
-              client = &room->client_a;
-              game->state = WAITING;
-            }
-          else
-            {
-              room->client_b = base_client;
-              room->client_b.player = PLAYER_B;
-              client = &room->client_b;
-              game->state = READY_TO_START;
-            }
+          pthread_mutex_unlock (&rooms[i].mutex);
           break;
         }
+      pthread_mutex_unlock (&rooms[i].mutex);
     }
-  pthread_mutex_unlock (mutex);
 
-  if (room == NULL)
+  if (room == NULL) // We didn't find a room.
     {
       log_event (LOG_ERROR, "Server is full.");
-      if (client)
-        close (client->sockfd);
+      close (base_client.sockfd);
       return NULL;
     }
+
+  // If we got here, we found a game.
+  Game *game = &room->game;
+  pthread_mutex_t *mutex = &room->mutex;
+  Client *client = NULL; // Will point to actual client in room.
+
+  // Is first client unassigned?
+  pthread_mutex_lock (mutex);
+  if (room->client_a.sockfd == 0)
+    {
+      room->client_a = base_client;
+      room->client_a.player = PLAYER_A;
+      client = &room->client_a;
+      game->state = WAITING;
+    }
+  else
+    {
+      // Assign to second client in room.
+      room->client_b = base_client;
+      room->client_b.player = PLAYER_B;
+      client = &room->client_b;
+      game->state = READY_TO_START;
+    }
+  pthread_mutex_unlock (mutex);
 
   // Send JOINED_MATCHMAKING
   log_event (LOG_INFO, "New client connected");
@@ -186,12 +211,14 @@ handle_client (void *arg)
     }
 
   // If the room is READY_TO_START, create the thread to manage the game.
+  pthread_mutex_lock (mutex);
   if (game->state == READY_TO_START)
     {
       pthread_t thread_id;
       pthread_create (&thread_id, NULL, handle_game, room);
       pthread_detach (thread_id);
     }
+  pthread_mutex_unlock (mutex);
 
   return NULL;
 }
