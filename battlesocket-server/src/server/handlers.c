@@ -148,6 +148,7 @@ handle_game (void *arg)
       if (bytes_read == 0)
         {
           log_event (LOG_INFO, "Client disconnection.");
+          broadcast ("END_GAME\n", room);
           break;
         }
       else if (bytes_read <= 1)
