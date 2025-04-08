@@ -70,7 +70,7 @@ build_shot (char *buffer, const char *pos)
 // Build string for END_GAME message.
 // - `winner` is the letter that identifies the player who won.
 void
-build_end_game (char *buffer, const char winner)
+build_end_game (char *buffer, Player winner)
 {
   sprintf (buffer, "END_GAME %c\n", winner);
 }

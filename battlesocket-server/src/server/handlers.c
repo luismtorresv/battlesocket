@@ -171,8 +171,7 @@ handle_game (void *arg)
   if (is_game_over (get_opposing_board (game)))
     {
       char end_msg[BUFSIZ] = { 0 };
-      build_end_game (end_msg,
-                      room->game.current_player == PLAYER_A ? 'A' : 'B');
+      build_end_game (end_msg, room->game.current_player);
       broadcast (end_msg, room);
       game->state = FINISHED;
       log_event (LOG_INFO, "Game over");

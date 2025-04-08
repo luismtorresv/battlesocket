@@ -21,6 +21,6 @@ void build_action_result (char *buffer, const char *result, const char *pos,
                           int sunk, const Player current_player);
 void build_bad_request(char *buffer, const char *badrequest, const Player current_player);
 void build_shot (char *buffer, const char *pos);
-void build_end_game (char *buffer, const char winner);
+void build_end_game (char *buffer, Player winner);
 
 #endif
