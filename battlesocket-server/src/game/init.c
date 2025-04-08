@@ -1,7 +1,7 @@
 #include "game.h"
+#include "logger.h"
 #include <stdlib.h>
 #include <time.h>
-#include "logger.h"
 
 // Initialise game.
 void
@@ -16,9 +16,11 @@ init_game (Game *game)
   const long int START_GAME_DELAY = 5; // Units: seconds.
   game->start_time = time (NULL) + START_GAME_DELAY;
 
-  choose_starting_player (game);
+  Player starting_player = choose_starting_player (game);
 
-  log_event (LOG_INFO, "Initialised game %d.", game->id);
+  log_event (LOG_INFO,
+             "Initialised game with id: %d, start time: %ld, starting player: %c.",
+             game->id, game->start_time, starting_player);
 }
 
 // Initialise game board.
