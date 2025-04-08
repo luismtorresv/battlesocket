@@ -36,15 +36,9 @@ def init_socket():
         current_message = cola.pop()[0] #La cola contiene el mensaje junto con la cadena vacia. Solo seleccionamos el mensaje.
         read_message(current_message,client_status)
         if client_status.game != None:
-            if client_status.game.has_started:
-                protocol_msg = client_status.game.shoot(client_status.player)
-                if protocol_msg !=0:
-                    print(protocol_msg)
-                    client.send(protocol_msg.encode("ascii"))  
+            client_status.game.action(client,client_status)
         else: 
             continue
-
-
 
 def read_message(msg,status):
     msg = msg.replace('|',' ') #TODO: CAMBIAR A UN ESPACIO CUANDO PAREMOS DE USAR |. Esta linea es provisional.
@@ -56,12 +50,12 @@ def read_message(msg,status):
             status.game.print_boards()
         case p.Protocol.MSG_HIT:
             #recibio un hit
-            print(msg)
-            pass
+            status.game.place_hit_or_miss(msg,status.player)
+            status.game.print_boards()
         case p.Protocol.MSG_MISS:
             #Recibio un miss
-            print(msg)
-            pass
+            status.game.place_hit_or_miss(msg,status.player)
+            status.game.print_boards()
         case p.Protocol.MSG_JOINED_MATCHMAKING:
             #Recibio un inicio de conexion
             player = p.init_matchmaking(msg)

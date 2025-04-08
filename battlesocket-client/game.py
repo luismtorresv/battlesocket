@@ -21,7 +21,6 @@ class Board:
         elif msg_type == 'MISS':
             self.board[coor[0]][coor[1]] = 'O'
 
-
 class Game:
     def __init__(self,player_board,start_time,current_player):
         self.player_board = self.place_ships(player_board)
@@ -51,21 +50,39 @@ class Game:
     def print_boards(self):
         print(f'Opposing Player:\n {self.opposite_player_board} \nYour board: \n{self.player_board}')
     
-    def place_hit(msg):
-        raise NotImplementedError
+    def place_hit_or_miss(self,msg,player):
+        if msg.__contains__('SUNK'):
+            NotImplementedError
+        else:
+            msg_type,coordinate,turn = msg.split(" ")
 
-    def shoot(self,player):
-        print(f'Es el turno del jugador: {self.current_player}')
+            print(f'{msg_type} en la coordenada: {coordinate}')
+
+            coordinate = coordinate.replace("-","")
+            translated_coor = translate(coordinate)[0] #por la naturaleza de la funcion translated, translated_coordinates es una lista de 1 solo elemento.
+            if turn != player:
+                self.opposite_player_board.update_board(msg_type,translated_coor)
+            else:
+                self.player_board.update_board(msg_type,translated_coor)
+
+        self.change_current_player(turn)
+
+    def shoot(self):
         coordinate = input("\n")
         coordinate = coordinate.upper()
-        if player == self.current_player:
-            coordinate.strip()
-            return f'SHOT {coordinate[0]}-{coordinate[1]}'
-        else:
-            print("Porfavor esperar a que sea tu turno")
-            return 0
+        coordinate.strip()
+        return f'SHOT {coordinate[0]}-{coordinate[1]}'
+        
+    def change_current_player(self,turn):
+        self.current_player = turn
 
-
+    def action(self,client,client_status):
+        print(f'Es el turno del jugador: {self.current_player}')
+        if client_status.player == self.current_player:
+            SHOT_protocol_msg = self.shoot()
+            if SHOT_protocol_msg !=0:
+                client.send(SHOT_protocol_msg.encode("ascii"))
+            
 def start_client():
     print("Welcome to Battleship™!")
     while True:
@@ -77,10 +94,6 @@ def start_client():
             os.exit(0)
         else:
             print("Please try again!")
-    
-
-
-
 
 def translate(set_of_coordinates):
     new_set = []
