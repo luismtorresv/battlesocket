@@ -127,7 +127,7 @@ void
 cleanup_server (int server_fd)
 {
   close (server_fd);
-  log_event (LOG_INFO, "Server closed ^_____^");
+  log_event (LOG_INFO, "Server closed.");
   exit (EXIT_SUCCESS);
   // TODO: Close all sockets of all rooms.
 }
