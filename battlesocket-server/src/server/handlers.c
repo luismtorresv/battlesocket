@@ -76,7 +76,8 @@ handle_message (Room *room, Client *client, char *message)
   int row = row_char - 'A';
   int col = col_val - 1;
 
-  log_event (LOG_INFO, "Processing shot.");
+  log_event (LOG_INFO, "Processing shot of client with IP %s:%ld.",
+             inet_ntoa (client->addr.sin_addr), client->addr.sin_port);
 
   // The shot happens in the board of the opposing player
   int hit = validate_shot (opposing_board, row, col);
