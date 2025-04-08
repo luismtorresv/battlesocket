@@ -66,6 +66,11 @@ memcheck: $(BUILD_DIR)/memcheck.out
 	./$<
 	@echo "Memory check passed"
 
+# For testing purposes: clears the screen and connects to server.
+.PHONY: listen
+listen:
+	clear -x && nc localhost 8080
+
 .PHONY: clean
 clean:
 	rm -r $(TARGET_EXEC) $(BUILD_DIR)
