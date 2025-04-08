@@ -15,30 +15,34 @@ handle_message (Room *room, Client *client, char *message)
   int newline_pos = strcspn (message, "\r\n");
   message[newline_pos] = '\0';
 
-  if (parse_message (message) != MSG_SHOT)
-    {
-      send_to_client (client, "BAD_REQUEST\n");
-      return;
-    }
+  char action[16] = {0};
+  char pos_str[16] = {0};
+  if (sscanf(message, "%15s %15s", action, pos_str) != 2) {
+    send_to_client(client, "BAD_REQUEST\n");
+    return;
+  }
+  if (strcmp(action, "SHOT") != 0) {
+    send_to_client(client, "BAD_REQUEST\n");
+    return;
+  }
 
-  // We expect a message like "SHOT|A-1"
-  char *separator = strchr (message, ' ');
-  if (separator == NULL)
-    {
-      send_to_client (client, "BAD_REQUEST\n");
-      return;
-    }
-  char pos[16] = { 0 };
-  strncpy (pos, separator + 1, sizeof (pos) - 1);
+  char row_char;
+  int col_val;
+  int consumed = 0; // This variable will keep the characters consumed.
+                    // We use %n to obtain the number of characters read while parsing.
+                    // If there are characters remaining after the `col_val`, it is a bad request.
 
-  if (pos[0] < 'A' || pos[0] > 'J' || pos[1] != '-')
-    {
-      send_to_client (client, "BAD_REQUEST\n");
-      return;
-    }
-  char row_char = pos[0];
+  if (sscanf(pos_str, " %c%d%n", &row_char, &col_val, &consumed) != 2 || pos_str[consumed] != '\0') {
+    send_to_client(client, "BAD_REQUEST\n");
+    return;
+  }
+  if (row_char < 'A' || row_char > 'J' || col_val < 1 || col_val > BOARD_SIZE) {
+    send_to_client(client, "BAD_REQUEST\n");
+    return;
+  }
+
   int row = row_char - 'A';
-  int col = atoi (pos + 2) - 1;
+  int col = col_val - 1;
 
   log_event (LOG_INFO, "Processing shot.");
 
@@ -59,7 +63,7 @@ handle_message (Room *room, Client *client, char *message)
   const char *result = hit ? "HIT" : "MISS";
   char action_msg[BUFSIZ];
   memset (action_msg, 0, sizeof (action_msg));
-  build_action_result (action_msg, result, pos, sunk, current_player);
+  build_action_result (action_msg, result, pos_str, sunk, current_player);
   broadcast (action_msg, room);
   log_event (LOG_INFO, "Action message sent");
 }

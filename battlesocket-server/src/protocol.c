@@ -46,7 +46,7 @@ build_action_result (char *buffer, const char *result, const char *pos,
                      int sunk, const Player current_player)
 {
   char next_player = current_player == PLAYER_A ? PLAYER_B : PLAYER_A;
-  char *format = sunk ? "%s %s SUNK %c\n" : "%s %s %c\n";
+  char *format = sunk ? "%s %s SUNK next:%c\n" : "%s %s next:%c\n";
   sprintf (buffer, format, result, pos, next_player);
 }
 
