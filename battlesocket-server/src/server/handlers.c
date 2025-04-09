@@ -10,7 +10,7 @@ handle_message (Room *room, Client *client, char *message)
 
   pthread_mutex_lock (mutex);
   Board *opposing_board = get_opposing_board (game);
-  Player current_player = game->current_player;
+  Player opposing_player = game->current_player == PLAYER_A ? PLAYER_B : PLAYER_A;
   pthread_mutex_unlock (mutex);
 
   int newline_pos = strcspn (message, "\r\n");
@@ -20,20 +20,24 @@ handle_message (Room *room, Client *client, char *message)
   char pos_str[16] = { 0 };
   if (sscanf (message, "%15s %15s", action, pos_str) != 2)
     {
-      send_bad_request (client, current_player);
+      send_bad_request (client);
 
-      // Notify the opposing player that is their turn.
-      send_to_client (get_opposing_client (room, current_player),
-                      "YOUR_TURN\n");
+      // Notify both clients that the turn changed.
+      char turn_msg[BUFSIZ] = {0};
+      long turn_time = time(NULL) + 30;
+      build_turn_msg (turn_msg, opposing_player, turn_time);
+      broadcast (turn_msg, room);
       return;
     }
   if (strcmp (action, "SHOT") != 0)
     {
-      send_bad_request (client, current_player);
+      send_bad_request (client);
 
-      // Notify the opposing player that is their turn.
-      send_to_client (get_opposing_client (room, current_player),
-                      "YOUR_TURN\n");
+      // Notify both clients that the turn changed.
+      char turn_msg[BUFSIZ] = {0};
+      long turn_time = time(NULL) + 30;
+      build_turn_msg (turn_msg, opposing_player, turn_time);
+      broadcast (turn_msg, room);
       return;
     }
 
@@ -47,20 +51,24 @@ handle_message (Room *room, Client *client, char *message)
   if (sscanf (pos_str, " %c%d%n", &row_char, &col_val, &consumed) != 2
       || pos_str[consumed] != '\0')
     {
-      send_bad_request (client, current_player);
+      send_bad_request (client);
 
-      // Notify the opposing player that is their turn.
-      send_to_client (get_opposing_client (room, current_player),
-                      "YOUR_TURN\n");
+      // Notify both clients that the turn changed.
+      char turn_msg[BUFSIZ] = {0};
+      long turn_time = time(NULL) + 30;
+      build_turn_msg (turn_msg, opposing_player, turn_time);
+      broadcast (turn_msg, room);
       return;
     }
   if (row_char < 'A' || row_char > 'J' || col_val < 1 || col_val > BOARD_SIZE)
     {
-      send_bad_request (client, current_player);
+      send_bad_request (client);
 
-      // Notify the opposing player that is their turn.
-      send_to_client (get_opposing_client (room, current_player),
-                      "YOUR_TURN\n");
+      // Notify both clients that the turn changed.
+      char turn_msg[BUFSIZ] = {0};
+      long turn_time = time(NULL) + 30;
+      build_turn_msg (turn_msg, opposing_player, turn_time);
+      broadcast (turn_msg, room);
       return;
     }
 
@@ -85,14 +93,17 @@ handle_message (Room *room, Client *client, char *message)
     }
 
   char action_msg[BUFSIZ] = { 0 };
-  build_action_result (action_msg, was_hit, pos_str, sunk, current_player);
+  build_action_result (action_msg, result, pos_str, sunk);
   broadcast (action_msg, room);
 
-  // Notify the opposing player that is their turn if is not game over.
+  // Notify both clients that the turn changed if the game is not over.
   if (!is_game_over (opposing_board))
     {
-      send_to_client (get_opposing_client (room, current_player),
-                      "YOUR_TURN\n");
+      char turn_msg[BUFSIZ] = {0};
+      long turn_time = time(NULL) + 30;
+      build_turn_msg (turn_msg, opposing_player, turn_time);
+      broadcast (turn_msg, room);
+      return;
     }
 
   log_event (LOG_INFO, "Action message sent");
@@ -104,13 +115,11 @@ notify_start_game (Room *room, Player player)
 {
   Board *board = get_board (&room->game, player);
   Client *client = get_client (room, player);
-  Player initial_player = room->game.current_player;
-  long int start_time = room->game.start_time;
 
   char ship_data[BUFSIZ] = { 0 };
   get_ship_data (board, ship_data, sizeof (ship_data));
 
-  send_start_game (client, start_time, initial_player, ship_data);
+  send_start_game (client, player, ship_data);
 }
 
 // Handler for the game.
@@ -127,7 +136,10 @@ handle_game (void *arg)
 
   notify_start_game (room, PLAYER_A);
   notify_start_game (room, PLAYER_B);
-  send_to_client (get_current_client (room), "YOUR_TURN\n");
+  char turn_msg[BUFSIZ] = {0};
+  long turn_time = time(NULL) + 30;
+  build_turn_msg (turn_msg, game->current_player, turn_time);
+  broadcast (turn_msg, room);
   pthread_mutex_lock (mutex);
   game->state = IN_PROGRESS;
   pthread_mutex_unlock (mutex);
@@ -141,7 +153,7 @@ handle_game (void *arg)
       if (bytes_read == 0)
         {
           log_event (LOG_INFO, "Client disconnection.");
-          broadcast ("END_GAME\n", room);
+          broadcast ("END_GAME$", room);
           break;
         }
       else if (bytes_read <= 1)

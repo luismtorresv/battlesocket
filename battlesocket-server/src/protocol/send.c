@@ -18,10 +18,10 @@ broadcast (const char *message, Room *room)
 }
 
 void
-send_bad_request (Client *client, const Player current_player)
+send_bad_request (Client *client)
 {
   char message[BUFSIZ] = { 0 };
-  build_bad_request (message, current_player);
+  sprintf (message, "BAD_REQUEST$");
   send_to_client (client, message);
 }
 
@@ -30,11 +30,10 @@ send_bad_request (Client *client, const Player current_player)
 // - `initial_player` is the letter that identifies the player who goes first.
 // - `ship_data` is the text representation of the board.
 void
-send_start_game (Client *client, long unix_time, Player initial_player,
-                 const char *ship_data)
+send_start_game (Client *client, Player player, const char *ship_data)
 {
   char message[BUFSIZ] = { 0 };
-  build_start_game (message, unix_time, initial_player, ship_data);
+  build_start_game (message, player, ship_data);
   send_to_client (client, message);
 }
 
@@ -55,7 +54,6 @@ void
 send_joined_matchmaking (Client *client)
 {
   char message[BUFSIZ] = { 0 };
-  Player player = client->player;
-  build_joined_matchmaking (message, player);
+  sprintf (message, "JOINED_MATCHMAKING$");
   send_to_client (client, message);
 }

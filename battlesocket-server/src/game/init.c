@@ -13,15 +13,11 @@ init_game (Game *game)
   init_board (&game->board_a);
   init_board (&game->board_b);
 
-  const long int START_GAME_DELAY = 5; // Units: seconds.
-  game->start_time = time (NULL) + START_GAME_DELAY;
-
   Player starting_player = choose_starting_player (game);
 
-  log_event (
-      LOG_INFO,
-      "Initialised game with id: %d, start time: %ld, starting player: %c.",
-      game->id, game->start_time, starting_player);
+  log_event (LOG_INFO,
+             "Initialised game with id: %d, starting player: %c.",
+             game->id, starting_player);
 }
 
 // Initialise game board.

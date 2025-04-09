@@ -57,7 +57,6 @@ struct Game
 {
   int id;
   GAME_STATE state;
-  long int start_time;
   Player current_player;
   Board board_a;
   Board board_b;

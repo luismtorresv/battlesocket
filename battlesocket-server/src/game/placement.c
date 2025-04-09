@@ -93,39 +93,39 @@ place_ships (Board *board)
   // 2 Cruisers
   if (place_ship (board, "cruiser", 3, ship_index) == -1)
     {
-      fprintf (stderr, "Error placing cruiser1\n");
+      fprintf (stderr, "Error placing cruiser\n");
     }
   ship_index++;
   if (place_ship (board, "cruiser", 3, ship_index) == -1)
     {
-      fprintf (stderr, "Error placing cruiser2\n");
+      fprintf (stderr, "Error placing cruiser\n");
     }
   ship_index++;
   // 2 Destroyers
   if (place_ship (board, "destroyer", 2, ship_index) == -1)
     {
-      fprintf (stderr, "Error placing destroyer1\n");
+      fprintf (stderr, "Error placing destroyer\n");
     }
   ship_index++;
   if (place_ship (board, "destroyer", 2, ship_index) == -1)
     {
-      fprintf (stderr, "Error placing destroyer2\n");
+      fprintf (stderr, "Error placing destroyer\n");
     }
   ship_index++;
   // 3 Submarines
   if (place_ship (board, "submarine", 1, ship_index) == -1)
     {
-      fprintf (stderr, "Error placing submarine1\n");
+      fprintf (stderr, "Error placing submarine\n");
     }
   ship_index++;
   if (place_ship (board, "submarine", 1, ship_index) == -1)
     {
-      fprintf (stderr, "Error placing submarine2\n");
+      fprintf (stderr, "Error placing submarine\n");
     }
   ship_index++;
   if (place_ship (board, "submarine", 1, ship_index) == -1)
     {
-      fprintf (stderr, "Error placing submarine3\n");
+      fprintf (stderr, "Error placing submarine\n");
     }
   ship_index++;
 }

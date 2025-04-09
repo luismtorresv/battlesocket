@@ -61,9 +61,8 @@ get_ship_data (Board *board, char *buffer, size_t buffer_size)
     {
       Ship *s = &board->ships[i];
 
-      // Create unique id using index.
-      char ship_id[32];
-      snprintf (ship_id, sizeof (ship_id), "%s%d", s->name, i + 1);
+      char current_ship[32];
+      snprintf (current_ship, sizeof (current_ship), "%s", s->name);
       char coords[128] = "";
       for (int j = 0; j < s->length; j++)
         {
@@ -85,17 +84,11 @@ get_ship_data (Board *board, char *buffer, size_t buffer_size)
         }
       // Using snprintf.
       int needed = snprintf (temp + current_pos, buffer_size - current_pos,
-                             "%s:%s; ", ship_id, coords);
+                             "%s:%s; ", current_ship, coords);
 
       if (needed < 0 || ((size_t)current_pos + (size_t)needed) >= buffer_size)
         break;
       current_pos += needed;
-    }
-
-  // Delete the last ";" if it exists.
-  if (current_pos >= 2)
-    {
-      temp[current_pos - 2] = '\0';
     }
 
   strncpy (buffer, temp, buffer_size - 1);
