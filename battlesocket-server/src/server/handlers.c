@@ -97,8 +97,11 @@ handle_message (Room *room, Client *client, char *message)
   build_action_result (action_msg, result, pos_str, sunk, current_player);
   broadcast (action_msg, room);
 
-  // Notify the opposing player that is their turn.
-  send_to_client (get_opposing_client (room, current_player), "YOUR_TURN\n");
+  // Notify the opposing player that is their turn if is not game over.
+  if (!is_game_over(opposing_board))
+  {
+    send_to_client (get_opposing_client (room, current_player), "YOUR_TURN\n");
+  }
 
   log_event (LOG_INFO, "Action message sent");
 }
@@ -161,6 +164,8 @@ handle_game (void *arg)
 
       log_event (LOG_DEBUG, "Player message received");
       handle_message (room, get_current_client (room), recv_buffer);
+      if (is_game_over(get_opposing_board (game)))
+        break;
 
       pthread_mutex_lock (mutex);
       change_turn (game);
