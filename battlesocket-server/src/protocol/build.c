@@ -26,8 +26,9 @@ build_start_game (char *buffer, Player player, const char *ship_data)
 // - `current_player` is the player of the current turn, i.e., the one who
 //   carried out the action.
 void
-build_action_result (char *buffer, const char *result, const char *pos, int sunk)
+build_action_result (char *buffer, const bool ship_was_hit, const char *pos, int sunk)
 {
+  const char *result = ship_was_hit ? "HIT" : "MISS";
   char *format = sunk ? "%s %s SUNK$" : "%s %s$";
   sprintf (buffer, format, result, pos);
 }

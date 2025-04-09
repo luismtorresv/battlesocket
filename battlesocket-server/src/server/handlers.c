@@ -93,7 +93,7 @@ handle_message (Room *room, Client *client, char *message)
     }
 
   char action_msg[BUFSIZ] = { 0 };
-  build_action_result (action_msg, result, pos_str, sunk);
+  build_action_result (action_msg, was_hit, pos_str, sunk);
   broadcast (action_msg, room);
 
   // Notify both clients that the turn changed if the game is not over.
