@@ -36,6 +36,16 @@ ourselves accustomed to the Unix sockets interface.
 
 ## Compilation
 
+### Server
+
+No third-party dependencies.
+
+We are using GNU's `gcc` compiler (specifically, version 11.4.0 on Ubuntu 22.04).
+
+Compile with `make` or compile _and run_ with `make run`.
+
+### Client
+
 > [!WARNING]
 >
 > Pending.
