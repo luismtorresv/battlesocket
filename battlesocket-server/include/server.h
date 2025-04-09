@@ -3,7 +3,6 @@
 
 #include "game.h"
 #include "logger.h"
-#include "protocol.h"
 #include <arpa/inet.h>
 #include <pthread.h>
 #include <stdbool.h>
@@ -59,7 +58,7 @@ Client *get_opposing_client(Room *room, Player player);
 Client *get_current_client (Room *room);
 
 void handle_message (Room *room, Client *client, char *message);
-void send_start_game (Room *room, Player player);
+void notify_start_game (Room *room, Player player);
 void *handle_game (void *arg);
 void *handle_client (void *arg);
 

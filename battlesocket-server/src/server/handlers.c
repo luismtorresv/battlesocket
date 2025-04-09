@@ -1,3 +1,4 @@
+#include "protocol.h"
 #include "server.h"
 
 // Handle a message of the protocol.
@@ -19,9 +20,7 @@ handle_message (Room *room, Client *client, char *message)
   char pos_str[16] = { 0 };
   if (sscanf (message, "%15s %15s", action, pos_str) != 2)
     {
-      char bad_req_msg[BUFSIZ] = { 0 };
-      build_bad_request (bad_req_msg, "BAD_REQUEST", current_player);
-      send_to_client (client, bad_req_msg);
+      send_bad_request (client, current_player);
 
       // Notify the opposing player that is their turn.
       send_to_client (get_opposing_client (room, current_player),
@@ -30,9 +29,7 @@ handle_message (Room *room, Client *client, char *message)
     }
   if (strcmp (action, "SHOT") != 0)
     {
-      char bad_req_msg[BUFSIZ] = { 0 };
-      build_bad_request (bad_req_msg, "BAD_REQUEST", current_player);
-      send_to_client (client, bad_req_msg);
+      send_bad_request (client, current_player);
 
       // Notify the opposing player that is their turn.
       send_to_client (get_opposing_client (room, current_player),
@@ -50,9 +47,7 @@ handle_message (Room *room, Client *client, char *message)
   if (sscanf (pos_str, " %c%d%n", &row_char, &col_val, &consumed) != 2
       || pos_str[consumed] != '\0')
     {
-      char bad_req_msg[BUFSIZ] = { 0 };
-      build_bad_request (bad_req_msg, "BAD_REQUEST", current_player);
-      send_to_client (client, bad_req_msg);
+      send_bad_request (client, current_player);
 
       // Notify the opposing player that is their turn.
       send_to_client (get_opposing_client (room, current_player),
@@ -61,9 +56,7 @@ handle_message (Room *room, Client *client, char *message)
     }
   if (row_char < 'A' || row_char > 'J' || col_val < 1 || col_val > BOARD_SIZE)
     {
-      char bad_req_msg[BUFSIZ] = { 0 };
-      build_bad_request (bad_req_msg, "BAD_REQUEST", current_player);
-      send_to_client (client, bad_req_msg);
+      send_bad_request (client, current_player);
 
       // Notify the opposing player that is their turn.
       send_to_client (get_opposing_client (room, current_player),
@@ -92,8 +85,7 @@ handle_message (Room *room, Client *client, char *message)
     }
 
   const char *result = hit ? "HIT" : "MISS";
-  char action_msg[BUFSIZ];
-  memset (action_msg, 0, sizeof (action_msg));
+  char action_msg[BUFSIZ] = { 0 };
   build_action_result (action_msg, result, pos_str, sunk, current_player);
   broadcast (action_msg, room);
 
@@ -108,7 +100,7 @@ handle_message (Room *room, Client *client, char *message)
 
 // Send start game message to `player`.
 void
-send_start_game (Room *room, Player player)
+notify_start_game (Room *room, Player player)
 {
   Board *board = get_board (&room->game, player);
   Client *client = get_client (room, player);
@@ -118,9 +110,7 @@ send_start_game (Room *room, Player player)
   char ship_data[BUFSIZ] = { 0 };
   get_ship_data (board, ship_data, sizeof (ship_data));
 
-  char start_message[BUFSIZ] = { 0 };
-  build_start_game (start_message, start_time, initial_player, ship_data);
-  send_to_client (client, start_message);
+  send_start_game (client, start_time, initial_player, ship_data);
 }
 
 // Handler for the game.
@@ -135,8 +125,8 @@ handle_game (void *arg)
   init_game (&room->game);
   pthread_mutex_unlock (mutex);
 
-  send_start_game (room, PLAYER_A);
-  send_start_game (room, PLAYER_B);
+  notify_start_game (room, PLAYER_A);
+  notify_start_game (room, PLAYER_B);
   send_to_client (get_current_client (room), "YOUR_TURN\n");
   pthread_mutex_lock (mutex);
   game->state = IN_PROGRESS;
@@ -176,7 +166,8 @@ handle_game (void *arg)
   if (is_game_over (get_opposing_board (game)))
     {
       char end_msg[BUFSIZ] = { 0 };
-      build_end_game (end_msg, room->game.current_player);
+      Player winner = game->current_player;
+      build_end_game (end_msg, winner);
       broadcast (end_msg, room);
       game->state = FINISHED;
       log_event (LOG_INFO, "Game over");
@@ -245,9 +236,7 @@ handle_client (void *arg)
 
   // Send JOINED_MATCHMAKING
   log_event (LOG_INFO, "New client connected");
-  char buffer[BUFSIZ];
-  build_joined_matchmaking (buffer, client->player);
-  send_to_client (client, buffer);
+  send_joined_matchmaking (client);
 
   while (game->state == WAITING)
     {

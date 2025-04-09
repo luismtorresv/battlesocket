@@ -1,4 +1,5 @@
 #include "server.h"
+#include "protocol.h"
 
 typedef struct ServerInfo ServerInfo;
 struct ServerInfo

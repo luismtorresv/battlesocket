@@ -12,10 +12,6 @@ parse_message (const char *msg)
 }
 
 // Build string for START_GAME message.
-// - Writes to `buffer`.
-// - `unix_time` is the game's start time.
-// - `initial_player` is the letter that identifies the player who goes first.
-// - `ship_data` is the text representation of the board.
 void
 build_start_game (char *buffer, long unix_time, Player initial_player,
                   const char *ship_data)
@@ -25,9 +21,6 @@ build_start_game (char *buffer, long unix_time, Player initial_player,
 }
 
 // Build string for JOINED_MATCHMAKING message.
-// - Writes to `buffer`.
-// - `player` the the letter that identifies the player who joined the
-// matchmaking.
 void
 build_joined_matchmaking (char *buffer, Player player)
 {
@@ -52,23 +45,14 @@ build_action_result (char *buffer, const char *result, const char *pos,
 
 // Build string for response to a bad request message.
 void
-build_bad_request (char *buffer, const char *badrequest,
-                   const Player current_player)
+build_bad_request (char *buffer, const Player current_player)
 {
+  const char *prefix = "BAD_REQUEST";
   char next_player = current_player == PLAYER_A ? PLAYER_B : PLAYER_A;
-  sprintf (buffer, "%s next:%c\n", badrequest, next_player);
-}
-
-// Build string for SHOT message.
-// Not actually used, as this is the server.
-void
-build_shot (char *buffer, const char *pos)
-{
-  sprintf (buffer, "SHOT %s\n", pos);
+  sprintf (buffer, "%s next:%c\n", prefix, next_player);
 }
 
 // Build string for END_GAME message.
-// - `winner` is the letter that identifies the player who won.
 void
 build_end_game (char *buffer, Player winner)
 {
