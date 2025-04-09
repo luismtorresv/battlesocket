@@ -28,16 +28,17 @@ build_joined_matchmaking (char *buffer, Player player)
 }
 
 // Build string for response to action message (SHOT, in this case).
-// - `result` is a string that can be either "HIT" or "MISS".
+// - `was_hit` is a boolean. True if ship was hit.
 // - `pos` is the (row,col) representation of the cell.
 // - `sunk` is an int (interpreted as a bool) that indicates whether the shot
 //   was a hit or miss
 // - `current_player` is the player of the current turn, i.e., the one who
 //   carried out the action.
 void
-build_action_result (char *buffer, const char *result, const char *pos,
+build_action_result (char *buffer, const bool ship_was_hit, const char *pos,
                      int sunk, const Player current_player)
 {
+  const char *result = ship_was_hit ? "HIT" : "MISS";
   char next_player = current_player == PLAYER_A ? PLAYER_B : PLAYER_A;
   char *format = sunk ? "%s %s SUNK next:%c\n" : "%s %s next:%c\n";
   sprintf (buffer, format, result, pos, next_player);

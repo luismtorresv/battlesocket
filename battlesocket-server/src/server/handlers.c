@@ -84,9 +84,8 @@ handle_message (Room *room, Client *client, char *message)
         sunk = is_ship_sunk (opposing_board, ship_index);
     }
 
-  const char *result = was_hit ? "HIT" : "MISS";
   char action_msg[BUFSIZ] = { 0 };
-  build_action_result (action_msg, result, pos_str, sunk, current_player);
+  build_action_result (action_msg, was_hit, pos_str, sunk, current_player);
   broadcast (action_msg, room);
 
   // Notify the opposing player that is their turn if is not game over.
