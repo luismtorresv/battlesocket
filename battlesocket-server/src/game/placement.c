@@ -79,7 +79,7 @@ place_ships (Board *board)
   // Submarines (1)
   int ship_index = 0;
   // Carrier
-  /* if (place_ship (board, "carrier", 5, ship_index) == -1)
+  if (place_ship (board, "carrier", 5, ship_index) == -1)
     {
       fprintf (stderr, "Error placing carrier\n");
     }
@@ -122,7 +122,7 @@ place_ships (Board *board)
     {
       fprintf (stderr, "Error placing submarine2\n");
     }
-  ship_index++; */
+  ship_index++;
   if (place_ship (board, "submarine", 1, ship_index) == -1)
     {
       fprintf (stderr, "Error placing submarine3\n");
