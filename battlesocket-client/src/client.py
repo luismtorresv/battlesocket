@@ -24,18 +24,18 @@ def init_socket():
 def read_message(msg,status):
     prot_message = msg.split(" ")[0] 
     prot_message = p.Protocol[f'MSG_{prot_message}']
-    print(msg)
+
     match prot_message:
         case p.Protocol.MSG_START_GAME:
             status.set_game(g.start_game(msg))
             status.game.print_boards()
         case p.Protocol.MSG_HIT:
             #recibio un hit
-            status.game.place_hit_or_miss(msg,status.player)
+            status.game.was_hit(msg,status.player)
             status.game.print_boards()
         case p.Protocol.MSG_MISS:
             #Recibio un miss
-            status.game.place_hit_or_miss(msg,status.player)
+            status.game.was_hit(msg,status.player)
             status.game.print_boards()
         case p.Protocol.MSG_JOINED_MATCHMAKING:
             #Recibio un inicio de conexion
@@ -44,40 +44,41 @@ def read_message(msg,status):
         case p.Protocol.MSG_END_GAME:
             #Recibio un final de juego
             status.game.status = 'INACTIVE'
+            print(msg)
+            print("The game has Ended")
         case p.Protocol.MSG_BAD_REQUEST:
             #Recibio un error
-            print("Hubo un error del lado del cliente.")
+            print("There was an error on the client side.")
 
 def init_game():
     socket = init_socket()  #Sets up the socket.
     cola = []
-    client_status = Status() #Sets up the status of the game
+    client_status = Status() #Sets up the status of the game.
 
     while True:
-        #Recibe mensajes del servidor
-        mensaje = socket.recv(1024).decode("ascii")
+        mensaje = socket.recv(1024).decode("ascii") #Recieves messages in the form of a stream of data.
         if not mensaje:
             print("Error")
             return
         else:
             cola.append(mensaje.split("\n"))
             
-        current_message = cola.pop()[0] #La cola contiene el mensaje junto con la cadena vacia. Solo seleccionamos el mensaje.
+        current_message = cola.pop()[0] #The first message in the queue is the first one to be answered. 
         read_message(current_message,client_status)
         if client_status.game != None:
-            client_status.game.action(socket,client_status)
-            if client_status.game.status == 'INACTIVE':
-                break
+            if client_status.game.status != 'INACTIVE':
+                client_status.game.action(socket,client_status)
+            else:
+                break #If the game ends, the while loop breaks.
         else: 
             continue
     return socket
 
 def cleanup_sockt(socket):
-    socket.shutdown()
+    socket.shutdown(1)
     socket.close()
 
 def init_client():
     g.start_client()
     socket = init_game()
     cleanup_sockt(socket)
-    #TODO: Close the socket.
