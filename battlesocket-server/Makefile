@@ -71,6 +71,11 @@ memcheck: $(BUILD_DIR)/memcheck.out
 listen:
 	clear -x && nc localhost 8080
 
+.PHONY: format
+format:
+	clang-format -i src/**/*.c include/*.h
+
+
 .PHONY: clean
 clean:
 	rm -r $(TARGET_EXEC) $(BUILD_DIR)
