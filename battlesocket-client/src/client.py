@@ -1,123 +1,95 @@
 import socket
-import game as g
-from protocol import Protocol
-from constants import Constants
-from sys import exit
+import sys
+
+import constants
+from game import Game
+from protocol import Protocol, ProtocolMessages
 
 
 class Client:
     def __init__(self):
-        self.game = None
+        self.game = Game()
         self.player = None
-        self.username, self.email = self.start_client()
+        self.username = None
+        self.email = None
+        self.sockfd = None
 
-    def set_player(self, player):
-        self.player = player
+    def init_socket(self):
+        hostname = socket.gethostname()
+        server_ip = socket.gethostbyname(hostname)
+        addr = (server_ip, constants.PORT)
 
-    def set_game(self, game):
-        self.game = game
+        try:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        except OSError:
+            print("error: failed to initialise socket.")
+            sys.exit(1)
 
-    def start_client(self):
-        print("Welcome to Battleship™!")
+        try:
+            sock.connect(addr)
+        except OSError:
+            print("error: failed to connect to server.")
+            sys.exit(1)
+
+        return sock
+
+    def run(self):
+        self.sockfd = self.init_socket()
+        queue = []  #  FIFO queue.
+
         while True:
-            ans = input("Do you wish to play? (Y/N)\n")
-            if ans.lower() == "y":
-                username, email = Client.inp_user_data()
-                return username, email
-            else:
-                print("Goodbye!")
-                exit(1)
+            # Receives messages in the form of a stream of data.
+            mensaje = self.sockfd.recv(1024).decode("ascii")
+            if not mensaje:
+                print("error: failed to receive data.")
+                return
 
-    def inp_user_data():  # Inputs for the user data
-        username = input("Please input a username: \n")
-        email = input("Please input your email: \n")
-        return username, email
-
-
-def init_socket():
-    SERVER_IP = socket.gethostbyname(socket.gethostname())
-    ADDR = (SERVER_IP, Constants.PORT)
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client.connect(ADDR)
-    return client
-
-
-def read_message(msg, client, socket):
-    prot_message = msg.split(" ")[0]
-    prot_message = Protocol[f"MSG_{prot_message}"]
-
-    match prot_message:
-        case Protocol.MSG_START_GAME:
-            client.set_game(g.start_game(msg))
-            client.game.print_boards()
-        case Protocol.MSG_HIT:
-            client.game.was_hit(msg, client.player)
-            client.game.print_boards()
-
-        case Protocol.MSG_MISS:
-            client.game.was_hit(msg, client.player)
-            client.game.print_boards()
-
-        case Protocol.MSG_JOINED_MATCHMAKING:
-            player = init_matchmaking(msg)
-            client.set_player(player)
-
-        case Protocol.MSG_END_GAME:
-            client.game.status = "INACTIVE"
-            g.end_game(msg)
-
-        case Protocol.MSG_BAD_REQUEST:
-            # TODO: This response
-            print("Se mando un bad request")
-
-        case Protocol.MSG_YOUR_TURN:
-            client.game.current_player = client.player
-            Protocol.build_shoot_msg(socket, client)
-
-
-def run_client(client):
-    socket = init_socket()  # Sets up the socket.
-    cola = []
-
-    while True:
-        mensaje = socket.recv(1024).decode(
-            "ascii"
-        )  # Recieves messages in the form of a stream of data.
-        if not mensaje:
-            print("Error")
-            return
-        else:
-            cola.append(mensaje.split("\n"))
-        # The first message in the queue is the first one to be answered.
-        current_message = cola.pop()[0]
-        read_message(current_message, client, socket)
-        if client.game:
-            if client.game.status == "INACTIVE":
+            queue.append(mensaje.split("\n"))
+            current_message = queue.pop()[0]
+            self.read_message(current_message)
+            if self.game and self.game.is_active:
                 break
-        else:
-            continue
-    return socket
+        self.cleanup()  # Closes the socket
 
+    def cleanup(self):
+        self.sockfd.shutdown(1)
+        self.sockfd.close()
 
-def cleanup_sockt(socket):
-    socket.shutdown(1)
-    socket.close()
+    def read_message(self, message):
+        prot_message = message.split(" ")[0]
+        prot_message = ProtocolMessages[f"MSG_{prot_message}"]
 
+        if prot_message not in ProtocolMessages:
+            print(f"error: {prot_message} not a valid protocol message.")
+            return
 
-def init_client():
-    client = Client()  # Sets up the status of the game.
-    socket = run_client(client)
-    cleanup_sockt(socket)  # Closes the socket
+        match prot_message:
+            case ProtocolMessages.MSG_START_GAME:
+                self.game.start_game(message)
+                self.game.print_boards()
+            case ProtocolMessages.MSG_HIT:
+                self.game.was_hit(message, self.player)
+                self.game.print_boards()
+            case ProtocolMessages.MSG_MISS:
+                self.game.was_hit(message, self.player)
+                self.game.print_boards()
+            case ProtocolMessages.MSG_JOINED_MATCHMAKING:
+                player = self.init_matchmaking(message)
+                self.player = player
+            case ProtocolMessages.MSG_END_GAME:
+                self.game.is_active = False
+                self.game.end_game(message)
+            case ProtocolMessages.MSG_BAD_REQUEST:
+                print("error: got sent a bad request.")
+            case ProtocolMessages.MSG_YOUR_TURN:
+                self.game.current_player = self.player
+                Protocol.build_shoot_msg(self)
 
+    def handle_bad_request(self, message):
+        # TODO: Log this.
+        _, self.player = message.split(" ")[1]
 
-def handle_bad_request(self, msg):
-    # TODO: Add this to the log.
-    _, player = msg.split(" ")
-    player = player[-1]  # The letter is found at the end of the string
-    self.change_current_player()
-
-
-def init_matchmaking(msg):
-    player = msg.split(" ")[1]
-    print(f"You are player {player}! Awaiting players...")
-    return player
+    def init_matchmaking(self, message):
+        player = message.split(" ")[1]
+        print(f"You are player {player}! Awaiting players...")
+        return player
