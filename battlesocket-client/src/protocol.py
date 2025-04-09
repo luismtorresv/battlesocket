@@ -8,6 +8,7 @@ class Protocol(Enum):
     MSG_JOINED_MATCHMAKING = 4
     MSG_END_GAME = 5
     MSG_BAD_REQUEST = 6
+    MSG_YOUR_TURN = 7
     # Los mensajes del protocolo no se deberian de poder acceder tan facilmente.
 
 

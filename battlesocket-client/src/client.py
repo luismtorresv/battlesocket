@@ -3,7 +3,6 @@ import game as g
 import protocol as p
 import constants as c
 
-
 class Status:
     def __init__(self):
         self.game = None
@@ -15,7 +14,6 @@ class Status:
     def set_game(self, game):
         self.game = game
 
-
 def init_socket():
     SERVER_IP = socket.gethostbyname(socket.gethostname())
     ADDR = (SERVER_IP, c.PORT)
@@ -23,8 +21,7 @@ def init_socket():
     client.connect(ADDR)
     return client
 
-
-def read_message(msg, status):
+def read_message(msg, status,socket):
     prot_message = msg.split(" ")[0]
     prot_message = p.Protocol[f"MSG_{prot_message}"]
 
@@ -51,8 +48,11 @@ def read_message(msg, status):
             print("The game has Ended")
         case p.Protocol.MSG_BAD_REQUEST:
             # Recibio un error
-            print("There was an error on the client side.")
-
+            status.game.handle_bad_request(msg)
+        case p.Protocol.MSG_YOUR_TURN:
+            #Recibio un cambio de turno.
+            status.game.current_player = status.player 
+            status.game.action(socket,status)
 
 def init_game():
     socket = init_socket()  # Sets up the socket.
@@ -72,12 +72,10 @@ def init_game():
         current_message = cola.pop()[
             0
         ]  # The first message in the queue is the first one to be answered.
-        read_message(current_message, client_status)
-        if client_status.game != None:
-            if client_status.game.status != "INACTIVE":
-                client_status.game.action(socket, client_status)
-            else:
-                break  # If the game ends, the while loop breaks.
+        read_message(current_message, client_status,socket)
+        if client_status.game:
+            if client_status.game.status == 'INACTIVE':
+                break
         else:
             continue
     return socket

@@ -1,3 +1,7 @@
 5d4354e267714a4c92ee7c41d9435731c121a890 # Reformatting code with `clang-format`
 54e5115a46af841b7aab5974dfaa2b00855ff553 # Reformat `src/server/handlers.c`
+<<<<<<< Updated upstream
 de7e7e78f1ec394ec95aac1e68422219cf58dc23 # Reformat some C and header files
+=======
+0c8c4ddef40716ab0a52877f6ad6fbaf6b95761c # Reformat with `black`
+>>>>>>> Stashed changes

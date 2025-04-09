@@ -108,7 +108,17 @@ class Game:
                 client.send(SHOT_protocol_msg.encode("ascii"))
             else:
                 client.send("Input error".encode("ascii"))
-                self.change_current_player()
+        else:
+            return
+
+
+    def handle_bad_request(self,msg):
+        print("There was an error on the client side.")
+        _,player = msg.split(" ")
+        player = player[-1]  #The letter is found at the end of the string
+        self.change_current_player()
+
+
 
 
 def start_client():
