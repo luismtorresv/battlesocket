@@ -8,16 +8,22 @@ change_turn (Game *game)
       = (game->current_player == PLAYER_A) ? PLAYER_B : PLAYER_A;
 }
 
-// Validate a shot in `row` and `col`.
-// Return 1 if cell in there's a ship in (row,col) and 0 otherwise.
-int
-validate_shot (Board *board, int row, int col)
+// Are the coordinates of this shot valid?
+bool
+is_valid_shot (int row, int col)
 {
   if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE)
-    return 0;
-  if (board->grid[row][col] == SHIP)
-    return 1;
-  return 0;
+    return false;
+  return true;
+}
+
+// Was a ship hit at this position?
+bool
+was_ship_hit (Board *board, int row, int col)
+{
+  if (!is_valid_shot (row, col))
+    return false;
+  return (board->grid[row][col] == SHIP);
 }
 
 // Returns 1 if all the cells of a ship have been hit and 0 otherwise.

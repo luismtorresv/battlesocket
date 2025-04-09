@@ -1,6 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 
+#include <stdbool.h>
 #include <stddef.h>
 
 #define BOARD_SIZE 10
@@ -71,7 +72,8 @@ void change_turn (Game *game);
 int place_ship (Board *board, const char *name, int length, int ship_index);
 void place_ships (Board *board);
 
-int validate_shot (Board *board, int row, int col);
+bool is_valid_shot (int row, int col);
+bool was_ship_hit (Board *board, int row, int col);
 int is_ship_sunk (Board *board, int ship_index);
 void update_board (Board *board, int row, int col, int hit);
 int is_game_over (Board *board);

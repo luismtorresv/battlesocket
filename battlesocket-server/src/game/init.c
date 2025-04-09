@@ -18,9 +18,10 @@ init_game (Game *game)
 
   Player starting_player = choose_starting_player (game);
 
-  log_event (LOG_INFO,
-             "Initialised game with id: %d, start time: %ld, starting player: %c.",
-             game->id, game->start_time, starting_player);
+  log_event (
+      LOG_INFO,
+      "Initialised game with id: %d, start time: %ld, starting player: %c.",
+      game->id, game->start_time, starting_player);
 }
 
 // Initialise game board.

@@ -71,20 +71,20 @@ handle_message (Room *room, Client *client, char *message)
              inet_ntoa (client->addr.sin_addr), client->addr.sin_port);
 
   // The shot happens in the board of the opposing player
-  int hit = validate_shot (opposing_board, row, col);
+  bool was_hit = was_ship_hit (opposing_board, row, col);
   pthread_mutex_lock (mutex);
-  update_board (opposing_board, row, col, hit);
+  update_board (opposing_board, row, col, was_hit);
   pthread_mutex_unlock (mutex);
 
-  int sunk = 0;
-  if (hit)
+  bool sunk = false;
+  if (was_hit)
     {
       int ship_index = get_ship_index_at (opposing_board, row, col);
       if (ship_index != -1)
         sunk = is_ship_sunk (opposing_board, ship_index);
     }
 
-  const char *result = hit ? "HIT" : "MISS";
+  const char *result = was_hit ? "HIT" : "MISS";
   char action_msg[BUFSIZ] = { 0 };
   build_action_result (action_msg, result, pos_str, sunk, current_player);
   broadcast (action_msg, room);
