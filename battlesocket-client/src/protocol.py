@@ -1,7 +1,4 @@
 from enum import Enum
-from re import match
-
-import constants
 
 
 class ProtocolMessages(Enum):
@@ -16,22 +13,19 @@ class ProtocolMessages(Enum):
 
 class Protocol:
     @classmethod
-    def build_shoot_msg(cls, client):
-        print(f"It's player {client.game.current_player}'s turn.")
-        if client.game.player_letter == client.game.current_player:
-            shot_protocol_msg = Protocol.shoot_msg()
-            if shot_protocol_msg:
-                client.sockfd.send(shot_protocol_msg.encode("ascii"))
-            else:
-                client.sockfd.send("Input error".encode("ascii"))
+    def build_shoot_msg(cls, coordinate):
+        return f"SHOT {coordinate[0]}{coordinate[1:]}"
 
     @classmethod
-    def shoot_msg(cls):
-        coordinate = input("\n").upper().strip()
-        expected_input = constants.EXPECTED_INPUT
+    def build_input_err_msg(cls):
+        return "BAD_REQUEST INPUT_ERROR"
+class Send_Protocol:
+    @classmethod
+    def send_shoot_msg(cls,client,message):
+        protocol_message = Protocol.build_shoot_msg(message)
+        client.sockfd.send(protocol_message.encode("ascii"))
 
-        # Matches the input with the expected input which should take the form: {A-J}{1-10}
-        matched = match(expected_input, coordinate)
-        if not matched:
-            print("Invalid input, type a coordinate from A-J and a number from 1-10")
-        return f"SHOT {coordinate[0]}{coordinate[1:]}"
+    @classmethod
+    def send_input_err_msg(cls,client):
+        protocol_message = Protocol.build_input_err_msg()
+        client.sockfd.send(protocol_message.encode("ascii"))

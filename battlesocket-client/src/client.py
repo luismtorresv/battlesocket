@@ -3,7 +3,7 @@ import sys
 
 import constants
 from game import Game
-from protocol import Protocol, ProtocolMessages
+from protocol import ProtocolMessages
 
 
 class Client:
@@ -84,7 +84,7 @@ class Client:
                 pass
             case ProtocolMessages.MSG_TURN:
                 self.game.set_current_turn(message)
-                Protocol.build_shoot_msg(self)
+                self.game.build_shoot_msg(self)
 
     def handle_bad_request(self, message):
         # TODO: Log this.

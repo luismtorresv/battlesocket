@@ -1,4 +1,6 @@
 import constants
+from protocol import Send_Protocol
+from re import match
 
 
 class Board:
@@ -105,6 +107,22 @@ class Game:
         _, player_letter, time = message.split(" ") #TODO: timeout. The turn sends the time.
         self.current_player = player_letter
         self.turn_time = time
+
+    def build_shoot_msg(self, client):
+        print(f"It's player {client.game.current_player}'s turn.")
+        if client.game.player_letter == client.game.current_player:
+            coordinate = input("\n").upper().strip()
+            expected_input = constants.EXPECTED_INPUT
+
+            # Matches the input with the expected input which should take the form: {A-J}{1-10}
+            matched = match(expected_input, coordinate)
+            if not matched:
+                print("Invalid input, type a coordinate from A-J and a number from 1-10")
+                Send_Protocol.send_input_err_msg(client)
+                return
+                
+            Send_Protocol.send_shoot_msg(client,coordinate)
+
 
 
 
