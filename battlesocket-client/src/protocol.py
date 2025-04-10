@@ -18,7 +18,7 @@ class Protocol:
     @classmethod
     def build_shoot_msg(cls, client):
         print(f"It's player {client.game.current_player}'s turn.")
-        if client.player == client.game.current_player:
+        if client.game.player_letter == client.game.current_player:
             shot_protocol_msg = Protocol.shoot_msg()
             if shot_protocol_msg:
                 client.sockfd.send(shot_protocol_msg.encode("ascii"))

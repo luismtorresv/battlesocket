@@ -9,7 +9,6 @@ from protocol import Protocol, ProtocolMessages
 class Client:
     def __init__(self):
         self.game = Game()
-        self.player = None
         self.username = None
         self.email = None
         self.sockfd = None
@@ -47,7 +46,8 @@ class Client:
             queue.append(mensaje.split(constants.TERMINATOR))
             current_message = queue.pop()[0]
             self.read_message(current_message)
-            if self.game and self.game.is_active:
+            if self.game and self.game.has_ended:
+                
                 break
         self.cleanup()  # Closes the socket
 
@@ -66,22 +66,24 @@ class Client:
         match prot_message:
             case ProtocolMessages.MSG_START_GAME:
                 self.game.start_game(message)
+                print(f'You are Player {self.game.player_letter}!')
                 self.game.print_boards()
             case ProtocolMessages.MSG_HIT:
-                self.game.was_hit(message, self.player)
+                self.game.was_hit(message, self.game.player_letter)
                 self.game.print_boards()
             case ProtocolMessages.MSG_MISS:
-                self.game.was_hit(message, self.player)
+                self.game.was_hit(message, self.game.player_letter)
                 self.game.print_boards()
             case ProtocolMessages.MSG_JOINED_MATCHMAKING:
                 self.init_matchmaking()
             case ProtocolMessages.MSG_END_GAME:
-                self.game.is_active = False
+                self.game.has_ended = True
                 self.game.end_game(message)
             case ProtocolMessages.MSG_BAD_REQUEST:
-                print("error: got sent a bad request.")
+                #TODO.
+                pass
             case ProtocolMessages.MSG_TURN:
-                self.game.current_player = self.player
+                self.game.set_current_turn(message)
                 Protocol.build_shoot_msg(self)
 
     def handle_bad_request(self, message):
