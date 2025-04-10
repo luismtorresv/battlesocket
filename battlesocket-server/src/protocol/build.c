@@ -35,7 +35,7 @@ build_action_result (char *buffer, const bool ship_was_hit, const char *pos, int
 
 void build_turn_msg(char *buffer, Player player, long timestamp) 
 {
-  sprintf(buffer, "%c %ld$", player, timestamp);
+  sprintf(buffer, "TURN:%c %ld$", player, timestamp);
 }
 
 // Build string for END_GAME message.
