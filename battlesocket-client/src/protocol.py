@@ -11,13 +11,13 @@ class ProtocolMessages(Enum):
     MSG_JOINED_MATCHMAKING = 4
     MSG_END_GAME = 5
     MSG_BAD_REQUEST = 6
-    MSG_YOUR_TURN = 7
+    MSG_TURN = 7
 
 
 class Protocol:
     @classmethod
     def build_shoot_msg(cls, client):
-        print(f"Es el turno del jugador: {client.game.current_player}")
+        print(f"It's player {client.game.current_player}'s turn.")
         if client.player == client.game.current_player:
             shot_protocol_msg = Protocol.shoot_msg()
             if shot_protocol_msg:

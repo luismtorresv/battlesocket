@@ -33,9 +33,11 @@ class Game:
         self.is_active = False
         self.start_time = None
         self.current_player = None
+        self.player_letter = None
 
     def place_ships(self, board):
         battleships_str = board.split(";")  # Stores all the battleships
+        battleships_str = battleships_str[:-1]  # Last one is empty space
         battleships = []
 
         for ship in battleships_str:
@@ -101,14 +103,12 @@ class Game:
 
     def start_game(self, message):
         # Uses the word 'board' to split the control information into 2 sides.
-        control_info, board = message.split(" board:")
+        message = message.split(" ", maxsplit=2)
+        _, player_letter, board = message
         board = board.strip("{}")
-        _, start_time, initial_player = control_info.split(" ")
         self.place_ships(board)
-        print(f"\nPlayer {initial_player[-1]} goes first.")
         self.is_active = False
-        self.start_time = start_time
-        self.current_player = initial_player[-1]
+        self.player_letter = player_letter
 
     def end_game(self, message):
         if " " not in message:

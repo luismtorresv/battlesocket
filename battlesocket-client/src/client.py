@@ -44,7 +44,7 @@ class Client:
                 print("error: failed to receive data.")
                 return
 
-            queue.append(mensaje.split("\n"))
+            queue.append(mensaje.split(constants.TERMINATOR))
             current_message = queue.pop()[0]
             self.read_message(current_message)
             if self.game and self.game.is_active:
@@ -74,14 +74,13 @@ class Client:
                 self.game.was_hit(message, self.player)
                 self.game.print_boards()
             case ProtocolMessages.MSG_JOINED_MATCHMAKING:
-                player = self.init_matchmaking(message)
-                self.player = player
+                self.init_matchmaking()
             case ProtocolMessages.MSG_END_GAME:
                 self.game.is_active = False
                 self.game.end_game(message)
             case ProtocolMessages.MSG_BAD_REQUEST:
                 print("error: got sent a bad request.")
-            case ProtocolMessages.MSG_YOUR_TURN:
+            case ProtocolMessages.MSG_TURN:
                 self.game.current_player = self.player
                 Protocol.build_shoot_msg(self)
 
@@ -89,7 +88,5 @@ class Client:
         # TODO: Log this.
         _, self.player = message.split(" ")[1]
 
-    def init_matchmaking(self, message):
-        player = message.split(" ")[1]
-        print(f"You are player {player}! Awaiting players...")
-        return player
+    def init_matchmaking(self):
+        print("Awaiting players...")
