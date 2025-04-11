@@ -28,9 +28,13 @@ ourselves accustomed to the Unix sockets interface.
 >
 > This section is incomplete.
 
-The BattleShip Protocol (BSP) is an ASCII text-based protocol for
-network communication in a client-server architecture of a Battleship game
-server with its clients or players. This section defines the semantics of BSP
+The BattleShip Protocol (BSP) is an application-layer
+network communication protocol for Battleship game.
+BSP relies on TCP to exchange human-readable text messages
+that allow information sharing and event synchronization
+between a game server and its clients.
+
+This section defines the semantics of BSP
 messages, as well as the procedures regarding them.
 
 ### Vocabulary
