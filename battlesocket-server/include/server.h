@@ -63,6 +63,6 @@ void *handle_game (void *arg);
 void *handle_client (void *arg);
 
 void send_to_client (Client *client, const char *message);
-void broadcast (const char *message, Room *room);
+void multicast (const char *message, Room *room);
 
 #endif

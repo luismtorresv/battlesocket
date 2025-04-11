@@ -27,7 +27,7 @@ handle_message (Room *room, Client *client, char *message)
       char turn_msg[BUFSIZ] = { 0 };
       long turn_time = time (NULL) + 30;
       build_turn_msg (turn_msg, opposing_player, turn_time);
-      broadcast (turn_msg, room);
+      multicast (turn_msg, room);
       return;
     }
   if (strcmp (action, "SHOT") != 0)
@@ -38,7 +38,7 @@ handle_message (Room *room, Client *client, char *message)
       char turn_msg[BUFSIZ] = { 0 };
       long turn_time = time (NULL) + 30;
       build_turn_msg (turn_msg, opposing_player, turn_time);
-      broadcast (turn_msg, room);
+      multicast (turn_msg, room);
       return;
     }
 
@@ -58,7 +58,7 @@ handle_message (Room *room, Client *client, char *message)
       char turn_msg[BUFSIZ] = { 0 };
       long turn_time = time (NULL) + 30;
       build_turn_msg (turn_msg, opposing_player, turn_time);
-      broadcast (turn_msg, room);
+      multicast (turn_msg, room);
       return;
     }
   if (row_char < 'A' || row_char > 'J' || col_val < 1 || col_val > BOARD_SIZE)
@@ -69,7 +69,7 @@ handle_message (Room *room, Client *client, char *message)
       char turn_msg[BUFSIZ] = { 0 };
       long turn_time = time (NULL) + 30;
       build_turn_msg (turn_msg, opposing_player, turn_time);
-      broadcast (turn_msg, room);
+      multicast (turn_msg, room);
       return;
     }
 
@@ -95,7 +95,7 @@ handle_message (Room *room, Client *client, char *message)
 
   char action_msg[BUFSIZ] = { 0 };
   build_action_result (action_msg, was_hit, pos_str, sunk);
-  broadcast (action_msg, room);
+  multicast (action_msg, room);
 
   // Notify both clients that the turn changed if the game is not over.
   if (!is_game_over (opposing_board))
@@ -103,7 +103,7 @@ handle_message (Room *room, Client *client, char *message)
       char turn_msg[BUFSIZ] = { 0 };
       long turn_time = time (NULL) + 30;
       build_turn_msg (turn_msg, opposing_player, turn_time);
-      broadcast (turn_msg, room);
+      multicast (turn_msg, room);
       return;
     }
 
@@ -140,7 +140,7 @@ handle_game (void *arg)
   char turn_msg[BUFSIZ] = { 0 };
   long turn_time = time (NULL) + 30;
   build_turn_msg (turn_msg, game->current_player, turn_time);
-  broadcast (turn_msg, room);
+  multicast (turn_msg, room);
   pthread_mutex_lock (mutex);
   game->state = IN_PROGRESS;
   pthread_mutex_unlock (mutex);
@@ -154,7 +154,7 @@ handle_game (void *arg)
       if (bytes_read == 0)
         {
           log_event (LOG_INFO, "Client disconnection.");
-          broadcast ("END_GAME$", room);
+          multicast ("END_GAME$", room);
           break;
         }
       else if (bytes_read <= 1)
@@ -181,7 +181,7 @@ handle_game (void *arg)
       char end_msg[BUFSIZ] = { 0 };
       Player winner = game->current_player;
       build_end_game (end_msg, winner);
-      broadcast (end_msg, room);
+      multicast (end_msg, room);
       game->state = FINISHED;
       log_event (LOG_INFO, "Game over");
     }
