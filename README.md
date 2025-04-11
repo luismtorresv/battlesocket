@@ -126,9 +126,18 @@ Compile with `make` or compile _and run_ with `make run`.
 
 ### Client
 
-> [!WARNING]
->
-> Pending.
+Written in Python.
+
+No third-party Python modules.
+
+We are running Python 3.11.1 on Ubuntu 22.04.
+
+You can either run it
+
+1. from the `battlesocket-client` directory with `python src/main.py`
+
+2. or from the project root directory with `python battlesocket-client/src/main.py`
+
 
 ## Authors
 
