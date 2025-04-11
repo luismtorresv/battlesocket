@@ -10,7 +10,8 @@ handle_message (Room *room, Client *client, char *message)
 
   pthread_mutex_lock (mutex);
   Board *opposing_board = get_opposing_board (game);
-  Player opposing_player = game->current_player == PLAYER_A ? PLAYER_B : PLAYER_A;
+  Player opposing_player
+      = game->current_player == PLAYER_A ? PLAYER_B : PLAYER_A;
   pthread_mutex_unlock (mutex);
 
   int newline_pos = strcspn (message, "\r\n");
@@ -23,8 +24,8 @@ handle_message (Room *room, Client *client, char *message)
       send_bad_request (client);
 
       // Notify both clients that the turn changed.
-      char turn_msg[BUFSIZ] = {0};
-      long turn_time = time(NULL) + 30;
+      char turn_msg[BUFSIZ] = { 0 };
+      long turn_time = time (NULL) + 30;
       build_turn_msg (turn_msg, opposing_player, turn_time);
       broadcast (turn_msg, room);
       return;
@@ -34,8 +35,8 @@ handle_message (Room *room, Client *client, char *message)
       send_bad_request (client);
 
       // Notify both clients that the turn changed.
-      char turn_msg[BUFSIZ] = {0};
-      long turn_time = time(NULL) + 30;
+      char turn_msg[BUFSIZ] = { 0 };
+      long turn_time = time (NULL) + 30;
       build_turn_msg (turn_msg, opposing_player, turn_time);
       broadcast (turn_msg, room);
       return;
@@ -54,8 +55,8 @@ handle_message (Room *room, Client *client, char *message)
       send_bad_request (client);
 
       // Notify both clients that the turn changed.
-      char turn_msg[BUFSIZ] = {0};
-      long turn_time = time(NULL) + 30;
+      char turn_msg[BUFSIZ] = { 0 };
+      long turn_time = time (NULL) + 30;
       build_turn_msg (turn_msg, opposing_player, turn_time);
       broadcast (turn_msg, room);
       return;
@@ -65,8 +66,8 @@ handle_message (Room *room, Client *client, char *message)
       send_bad_request (client);
 
       // Notify both clients that the turn changed.
-      char turn_msg[BUFSIZ] = {0};
-      long turn_time = time(NULL) + 30;
+      char turn_msg[BUFSIZ] = { 0 };
+      long turn_time = time (NULL) + 30;
       build_turn_msg (turn_msg, opposing_player, turn_time);
       broadcast (turn_msg, room);
       return;
@@ -99,8 +100,8 @@ handle_message (Room *room, Client *client, char *message)
   // Notify both clients that the turn changed if the game is not over.
   if (!is_game_over (opposing_board))
     {
-      char turn_msg[BUFSIZ] = {0};
-      long turn_time = time(NULL) + 30;
+      char turn_msg[BUFSIZ] = { 0 };
+      long turn_time = time (NULL) + 30;
       build_turn_msg (turn_msg, opposing_player, turn_time);
       broadcast (turn_msg, room);
       return;
@@ -136,8 +137,8 @@ handle_game (void *arg)
 
   notify_start_game (room, PLAYER_A);
   notify_start_game (room, PLAYER_B);
-  char turn_msg[BUFSIZ] = {0};
-  long turn_time = time(NULL) + 30;
+  char turn_msg[BUFSIZ] = { 0 };
+  long turn_time = time (NULL) + 30;
   build_turn_msg (turn_msg, game->current_player, turn_time);
   broadcast (turn_msg, room);
   pthread_mutex_lock (mutex);
