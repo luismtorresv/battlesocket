@@ -19,7 +19,12 @@ class Protocol:
     @classmethod
     def build_input_err_msg(cls):
         return "BAD_REQUEST INPUT_ERROR"
-class Send_Protocol:
+    
+    """ @classmethod
+    def build_surrender_msg(cls):
+        return f"END_GAME SURRENDER" """
+
+class Send:
     @classmethod
     def send_shoot_msg(cls,client,message):
         protocol_message = Protocol.build_shoot_msg(message)
@@ -29,3 +34,7 @@ class Send_Protocol:
     def send_input_err_msg(cls,client):
         protocol_message = Protocol.build_input_err_msg()
         client.sockfd.send(protocol_message.encode("ascii"))
+
+    """ def send_surrender_msg(cls,client):
+        protocol_message = Protocol.build_surrender_msg()
+        client.sockfd.send(protocol_message.encode("ascii")) """

@@ -84,7 +84,8 @@ class Client:
                 pass
             case ProtocolMessages.MSG_TURN:
                 self.game.set_current_turn(message)
-                self.game.build_shoot_msg(self)
+                self.game.fire_shot(self)
+
 
     def handle_bad_request(self, message):
         # TODO: Log this.
