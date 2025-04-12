@@ -115,26 +115,30 @@ class Game:
         self.turn_time = time
 
     def fire_shot(self, client):
-        print(f"It's player {client.game.current_player}'s turn.")
-        if client.game.player_letter == client.game.current_player:
-            matched = False
-            while not matched:
-                try:
-                    coordinate = input("\n").upper().strip()
-                except KeyboardInterrupt:
-                    Send.send_surrender_msg(client)
-                    return
-                expected_input = constants.EXPECTED_INPUT
+        if client.game.player_letter != client.game.current_player:
+            print("Its the other player's turn.")
+            return
 
-                # Matches the input with the expected input which should take the form: {A-J}{1-10}
-                matched = match(expected_input, coordinate)
-                if not matched:
+        print("Its your turn!")    
+        matched = False
+        while not matched:
+            try:
+                coordinate = input("\n").upper().strip()
+            except KeyboardInterrupt:
+                Send.send_surrender_msg(client)
+                return
+            
+            expected_input = constants.EXPECTED_INPUT
 
-                    print(
-                        "Invalid input, type a coordinate from A-J and a number from 1-10"
-                    )
+            # Matches the input with the expected input which should take the form: {A-J}{1-10}
+            matched = match(expected_input, coordinate)
+            if not matched:
 
-            Send.send_shoot_msg(client, coordinate)
+                print(
+                    "Invalid input, type a coordinate from A-J and a number from 1-10"
+                )
+
+        Send.send_shoot_msg(client, coordinate)
 
     def surrender(self):
         self.has_ended = True
