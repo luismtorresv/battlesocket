@@ -14,23 +14,10 @@ handle_message (Room *room, Client *client, char *message)
       = game->current_player == PLAYER_A ? PLAYER_B : PLAYER_A;
   pthread_mutex_unlock (mutex);
 
-  char action[16] = { 0 };
-  char pos_str[16] = { 0 };
-  if (sscanf (message, "%15s %15s", action, pos_str) != 2)
+  MessageType message_type = parse_message (message);
+  if (message_type == MSG_BAD_REQUEST)
     {
       send_bad_request (client);
-
-      // Notify both clients that the turn changed.
-      char turn_msg[BUFSIZ] = { 0 };
-      long turn_time = time (NULL) + 30;
-      build_turn_msg (turn_msg, opposing_player, turn_time);
-      multicast (turn_msg, room);
-      return;
-    }
-  if (strcmp (action, "SHOT") != 0)
-    {
-      send_bad_request (client);
-
       // Notify both clients that the turn changed.
       char turn_msg[BUFSIZ] = { 0 };
       long turn_time = time (NULL) + 30;
@@ -39,72 +26,55 @@ handle_message (Room *room, Client *client, char *message)
       return;
     }
 
-  char row_char;
-  int col_val;
-  int consumed = 0; // This variable will keep the characters consumed.
-                    // We use %n to obtain the number of characters read while
-                    // parsing. If there are characters remaining after the
-                    // `col_val`, it is a bad request.
-
-  if (sscanf (pos_str, " %c%d%n", &row_char, &col_val, &consumed) != 2
-      || pos_str[consumed] != '\0')
+  if (message_type == MSG_SHOT)
     {
-      send_bad_request (client);
+      Shot shot = parse_shot (message);
 
-      // Notify both clients that the turn changed.
-      char turn_msg[BUFSIZ] = { 0 };
-      long turn_time = time (NULL) + 30;
-      build_turn_msg (turn_msg, opposing_player, turn_time);
-      multicast (turn_msg, room);
-      return;
+      if (!shot.is_valid_shot)
+        {
+          send_bad_request (client);
+          // Notify both clients that the turn changed.
+          char turn_msg[BUFSIZ] = { 0 };
+          long turn_time = time (NULL) + 30;
+          build_turn_msg (turn_msg, opposing_player, turn_time);
+          multicast (turn_msg, room);
+          return;
+        }
+
+      log_event (LOG_INFO, "Processing shot of client with IP %s:%ld.",
+                 inet_ntoa (client->addr.sin_addr), client->addr.sin_port);
+
+      // The shot happens in the board of the opposing player
+      bool was_hit = was_ship_hit (opposing_board, shot.row, shot.col);
+      pthread_mutex_lock (mutex);
+      update_board (opposing_board, shot.row, shot.col, was_hit);
+      pthread_mutex_unlock (mutex);
+
+      bool sunk = false;
+      if (was_hit)
+        {
+          int ship_index
+              = get_ship_index_at (opposing_board, shot.row, shot.col);
+          if (ship_index != -1)
+            sunk = is_ship_sunk (opposing_board, ship_index);
+        }
+
+      char action_msg[BUFSIZ] = { 0 };
+      build_action_result (action_msg, was_hit, shot.row, shot.col, sunk);
+      multicast (action_msg, room);
+
+      // Notify both clients that the turn changed if the game is not over.
+      if (!is_game_over (opposing_board))
+        {
+          char turn_msg[BUFSIZ] = { 0 };
+          long turn_time = time (NULL) + 30;
+          build_turn_msg (turn_msg, opposing_player, turn_time);
+          multicast (turn_msg, room);
+          return;
+        }
+
+      log_event (LOG_INFO, "Action message sent");
     }
-  if (row_char < 'A' || row_char > 'J' || col_val < 1 || col_val > BOARD_SIZE)
-    {
-      send_bad_request (client);
-
-      // Notify both clients that the turn changed.
-      char turn_msg[BUFSIZ] = { 0 };
-      long turn_time = time (NULL) + 30;
-      build_turn_msg (turn_msg, opposing_player, turn_time);
-      multicast (turn_msg, room);
-      return;
-    }
-
-  int row = row_char - 'A';
-  int col = col_val - 1;
-
-  log_event (LOG_INFO, "Processing shot of client with IP %s:%ld.",
-             inet_ntoa (client->addr.sin_addr), client->addr.sin_port);
-
-  // The shot happens in the board of the opposing player
-  bool was_hit = was_ship_hit (opposing_board, row, col);
-  pthread_mutex_lock (mutex);
-  update_board (opposing_board, row, col, was_hit);
-  pthread_mutex_unlock (mutex);
-
-  bool sunk = false;
-  if (was_hit)
-    {
-      int ship_index = get_ship_index_at (opposing_board, row, col);
-      if (ship_index != -1)
-        sunk = is_ship_sunk (opposing_board, ship_index);
-    }
-
-  char action_msg[BUFSIZ] = { 0 };
-  build_action_result (action_msg, was_hit, pos_str, sunk);
-  multicast (action_msg, room);
-
-  // Notify both clients that the turn changed if the game is not over.
-  if (!is_game_over (opposing_board))
-    {
-      char turn_msg[BUFSIZ] = { 0 };
-      long turn_time = time (NULL) + 30;
-      build_turn_msg (turn_msg, opposing_player, turn_time);
-      multicast (turn_msg, room);
-      return;
-    }
-
-  log_event (LOG_INFO, "Action message sent");
 }
 
 // Send start game message to `player`.

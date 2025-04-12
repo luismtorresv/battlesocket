@@ -11,12 +11,24 @@ typedef enum
   MSG_JOINED_MATCHMAKING,
   MSG_END_GAME,
   MSG_BAD_REQUEST
-} MsgType;
+} MessageType;
 
-MsgType parse_message (const char *msg);
+typedef struct Shot Shot;
+
+struct Shot
+{
+  bool is_valid_shot;
+  Player player;
+  int row;
+  int col;
+};
+
+MessageType parse_message (const char *message);
+Shot parse_shot (const char *message);
+
 void build_start_game (char *buffer, Player player, const char *ship_data);
-void build_action_result (char *buffer, const bool ship_was_hit,
-                          const char *pos, int sunk);
+void build_action_result (char *buffer, const bool ship_was_hit, const int row,
+                          const int col, int sunk);
 void build_turn_msg (char *buffer, Player player, long timestamp);
 void build_end_game (char *buffer, Player winner);
 
