@@ -120,8 +120,7 @@ class Game:
         if client.game.player_letter == client.game.current_player:
             try:
                 coordinate = input("\n").upper().strip()
-            except:
-                KeyboardInterrupt
+            except KeyboardInterrupt:
                 self.input_surrender()
                 return
             expected_input = constants.EXPECTED_INPUT
