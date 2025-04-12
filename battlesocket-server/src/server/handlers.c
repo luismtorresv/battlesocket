@@ -18,11 +18,6 @@ handle_message (Room *room, Client *client, char *message)
   if (message_type == MSG_BAD_REQUEST)
     {
       send_bad_request (client);
-      // Notify both clients that the turn changed.
-      char turn_msg[BUFSIZ] = { 0 };
-      long turn_time = time (NULL) + 30;
-      build_turn_msg (turn_msg, opposing_player, turn_time);
-      multicast (turn_msg, room);
       return;
     }
 
@@ -33,11 +28,6 @@ handle_message (Room *room, Client *client, char *message)
       if (!shot.is_valid_shot)
         {
           send_bad_request (client);
-          // Notify both clients that the turn changed.
-          char turn_msg[BUFSIZ] = { 0 };
-          long turn_time = time (NULL) + 30;
-          build_turn_msg (turn_msg, opposing_player, turn_time);
-          multicast (turn_msg, room);
           return;
         }
 
@@ -64,14 +54,16 @@ handle_message (Room *room, Client *client, char *message)
       multicast (action_msg, room);
 
       // Notify both clients that the turn changed if the game is not over.
+      pthread_mutex_lock (mutex);
       if (!is_game_over (opposing_board))
         {
+          change_turn (game);
           char turn_msg[BUFSIZ] = { 0 };
           long turn_time = time (NULL) + 30;
           build_turn_msg (turn_msg, opposing_player, turn_time);
           multicast (turn_msg, room);
-          return;
         }
+      pthread_mutex_unlock (mutex);
 
       log_event (LOG_INFO, "Action message sent");
     }
@@ -116,10 +108,12 @@ handle_game (void *arg)
 
   notify_start_game (room, PLAYER_A);
   notify_start_game (room, PLAYER_B);
+
   char turn_msg[BUFSIZ] = { 0 };
   long turn_time = time (NULL) + 30;
   build_turn_msg (turn_msg, game->current_player, turn_time);
   multicast (turn_msg, room);
+
   pthread_mutex_lock (mutex);
   game->state = IN_PROGRESS;
   pthread_mutex_unlock (mutex);
@@ -146,12 +140,6 @@ handle_game (void *arg)
 
       log_event (LOG_DEBUG, "Player message received");
       handle_message (room, get_current_client (room), recv_buffer);
-      if (should_room_finish (room))
-        break;
-
-      pthread_mutex_lock (mutex);
-      change_turn (game);
-      pthread_mutex_unlock (mutex);
     }
 
   pthread_mutex_lock (mutex);
