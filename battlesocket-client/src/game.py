@@ -117,28 +117,31 @@ class Game:
     def fire_shot(self, client):
         print(f"It's player {client.game.current_player}'s turn.")
         if client.game.player_letter == client.game.current_player:
-            try:
-                coordinate = input("\n").upper().strip()
-            except KeyboardInterrupt:
-                self.surrender()
-                Send.send_surrender_msg(client)
-                return
-            expected_input = constants.EXPECTED_INPUT
+            matched = False
+            while not matched:
+                try:
+                    coordinate = input("\n").upper().strip()
+                except KeyboardInterrupt:
+                    Send.send_surrender_msg(client)
+                    return
+                expected_input = constants.EXPECTED_INPUT
 
-            # Matches the input with the expected input which should take the form: {A-J}{1-10}
-            matched = match(expected_input, coordinate)
-            if not matched:
+                # Matches the input with the expected input which should take the form: {A-J}{1-10}
+                matched = match(expected_input, coordinate)
+                if not matched:
 
-                print(
-                    "Invalid input, type a coordinate from A-J and a number from 1-10"
-                )
-                Send.send_input_err_msg(client)
-                return
+                    print(
+                        "Invalid input, type a coordinate from A-J and a number from 1-10"
+                    )
 
             Send.send_shoot_msg(client, coordinate)
 
     def surrender(self):
         self.has_ended = True
+        if self.current_player != self.player_letter:
+            print("The opponent has forfit the match. You Won!")
+        else:
+            print("You gave up. :(")
 
     def start_game(self, message):
         # Uses the word 'board' to split the control information into 2 sides.
@@ -153,5 +156,9 @@ class Game:
             print("The game ended.")
             return
 
+        elif "SURRENDER" in message:
+            self.surrender()
+            return
+        
         _, player_letter = message.split(" ")
         print(f"Game Over. The winner is: Player {player_letter}")

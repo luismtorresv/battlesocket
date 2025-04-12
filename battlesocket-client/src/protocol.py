@@ -14,15 +14,15 @@ class ProtocolMessages(Enum):
 class Protocol:
     @classmethod
     def build_shoot_msg(cls, coordinate):
-        return f"SHOT {coordinate[0]}{coordinate[1:]}"
+        return f"SHOT {coordinate[0]}{coordinate[1:]}$"
 
     @classmethod
     def build_input_err_msg(cls):
-        return "BAD_REQUEST INPUT_ERROR"
+        return "BAD_REQUEST INPUT_ERROR$"
 
     @classmethod
     def build_surrender_msg(cls):
-        return "SURRENDER"
+        return "SURRENDER$"
 
 class Send:
     @classmethod
