@@ -37,7 +37,6 @@ class Game:
         self.current_player = None
         self.player_letter = None
         self.turn_time = None
-        self.has_surrendered = False
 
     def place_ships(self, board):
         battleships_str = board.split(";")  # Stores all the battleships
@@ -121,7 +120,8 @@ class Game:
             try:
                 coordinate = input("\n").upper().strip()
             except KeyboardInterrupt:
-                self.input_surrender()
+                self.surrender()
+                Send.send_surrender_msg(client)
                 return
             expected_input = constants.EXPECTED_INPUT
 
@@ -137,9 +137,8 @@ class Game:
 
             Send.send_shoot_msg(client, coordinate)
 
-    def input_surrender(self):
+    def surrender(self):
         self.has_ended = True
-        self.has_surrendered = True
 
     def start_game(self, message):
         # Uses the word 'board' to split the control information into 2 sides.
