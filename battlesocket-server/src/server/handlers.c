@@ -14,9 +14,6 @@ handle_message (Room *room, Client *client, char *message)
       = game->current_player == PLAYER_A ? PLAYER_B : PLAYER_A;
   pthread_mutex_unlock (mutex);
 
-  int newline_pos = strcspn (message, "\r\n");
-  message[newline_pos] = '\0';
-
   char action[16] = { 0 };
   char pos_str[16] = { 0 };
   if (sscanf (message, "%15s %15s", action, pos_str) != 2)
