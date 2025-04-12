@@ -5,12 +5,9 @@
 
 typedef enum
 {
-  MSG_START_GAME,
-  MSG_ACTION_RESULT,
   MSG_SHOT,
-  MSG_JOINED_MATCHMAKING,
-  MSG_END_GAME,
-  MSG_BAD_REQUEST
+  MSG_BAD_REQUEST,
+  MSG_SURRENDER,
 } MessageType;
 
 typedef struct Shot Shot;
@@ -31,6 +28,7 @@ void build_action_result (char *buffer, const bool ship_was_hit, const int row,
                           const int col, int sunk);
 void build_turn_msg (char *buffer, Player player, long timestamp);
 void build_end_game (char *buffer, Player winner);
+void build_end_game_surrender (char *buffer);
 
 void send_bad_request (Client *client);
 void send_start_game (Client *client, Player player, const char *ship_data);

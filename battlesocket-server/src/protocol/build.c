@@ -39,3 +39,9 @@ build_end_game (char *buffer, Player winner)
 {
   sprintf (buffer, "END_GAME %c$", winner);
 }
+
+void
+build_end_game_surrender (char *buffer)
+{
+  sprintf (buffer, "END_GAME SURRENDER$");
+}

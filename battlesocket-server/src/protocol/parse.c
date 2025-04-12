@@ -6,6 +6,8 @@ parse_message (const char *message)
 {
   if (strncmp (message, "SHOT", 4) == 0)
     return MSG_SHOT;
+  if (strncmp (message, "SURRENDER", 9) == 0)
+    return MSG_SURRENDER;
   return MSG_BAD_REQUEST;
 }
 

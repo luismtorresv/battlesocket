@@ -7,6 +7,14 @@ is_room_available (Room *room)
   return (room->client_a.sockfd == 0) || (room->client_b.sockfd == 0);
 }
 
+// Considers state as well as boards.
+bool
+should_room_finish (Room *room)
+{
+  Game *game = &room->game;
+  return (game->state == FINISHED) || is_game_over (get_opposing_board (game));
+}
+
 // Returns the socket file descriptor of the current player.
 int
 get_current_socket_fd (Room *room)

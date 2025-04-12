@@ -75,6 +75,18 @@ handle_message (Room *room, Client *client, char *message)
 
       log_event (LOG_INFO, "Action message sent");
     }
+  else if (message_type == MSG_SURRENDER)
+    {
+      log_event (LOG_INFO, "Client with IP %s:%ld sent a surrender message.",
+                 inet_ntoa (client->addr.sin_addr), client->addr.sin_port);
+
+      game->state = FINISHED;
+
+      // Notify both clients.
+      char buffer[BUFSIZ] = { 0 };
+      build_end_game_surrender (buffer);
+      multicast (buffer, room);
+    }
 }
 
 // Send start game message to `player`.
@@ -113,7 +125,7 @@ handle_game (void *arg)
   pthread_mutex_unlock (mutex);
 
   char recv_buffer[BUFSIZ] = { 0 };
-  while (!is_game_over (get_opposing_board (game)))
+  while (!should_room_finish (room))
     {
       memset (recv_buffer, 0, sizeof (recv_buffer));
       int bytes_read = recv (get_current_socket_fd (room), recv_buffer,
@@ -134,7 +146,7 @@ handle_game (void *arg)
 
       log_event (LOG_DEBUG, "Player message received");
       handle_message (room, get_current_client (room), recv_buffer);
-      if (is_game_over (get_opposing_board (game)))
+      if (should_room_finish (room))
         break;
 
       pthread_mutex_lock (mutex);
@@ -145,12 +157,15 @@ handle_game (void *arg)
   pthread_mutex_lock (mutex);
   if (is_game_over (get_opposing_board (game)))
     {
+      game->state = FINISHED;
+
+      // Notify who won.
       char end_msg[BUFSIZ] = { 0 };
       Player winner = game->current_player;
       build_end_game (end_msg, winner);
       multicast (end_msg, room);
-      game->state = FINISHED;
-      log_event (LOG_INFO, "Game over");
+      log_event (LOG_INFO, "Game of room %d is over. Player %c won.", room->id,
+                 winner);
     }
   pthread_mutex_unlock (mutex);
 
