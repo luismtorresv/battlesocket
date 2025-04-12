@@ -57,3 +57,17 @@ send_joined_matchmaking (Client *client)
   sprintf (message, "JOINED_MATCHMAKING$");
   send_to_client (client, message);
 }
+
+// Send a `TURN` message to both clients with a timer.
+void
+multicast_current_turn (Room *room)
+{
+  const int OFFSET = 30; // In seconds.
+  char message[BUFSIZ] = { 0 };
+  Game *game = &room->game;
+
+  long turn_time = time (NULL) + OFFSET;
+  Player current_player = game->current_player;
+  build_turn_msg (message, current_player, turn_time);
+  multicast (message, room);
+}

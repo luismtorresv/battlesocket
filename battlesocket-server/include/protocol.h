@@ -35,4 +35,6 @@ void send_start_game (Client *client, Player player, const char *ship_data);
 void send_end_game (Client *client, Player winner);
 void send_joined_matchmaking (Client *client);
 
+void multicast_current_turn (Room *room);
+
 #endif

@@ -10,8 +10,6 @@ handle_message (Room *room, Client *client, char *message)
 
   pthread_mutex_lock (mutex);
   Board *opposing_board = get_opposing_board (game);
-  Player opposing_player
-      = game->current_player == PLAYER_A ? PLAYER_B : PLAYER_A;
   pthread_mutex_unlock (mutex);
 
   MessageType message_type = parse_message (message);
@@ -58,10 +56,7 @@ handle_message (Room *room, Client *client, char *message)
       if (!is_game_over (opposing_board))
         {
           change_turn (game);
-          char turn_msg[BUFSIZ] = { 0 };
-          long turn_time = time (NULL) + 30;
-          build_turn_msg (turn_msg, opposing_player, turn_time);
-          multicast (turn_msg, room);
+          multicast_current_turn (room);
         }
       pthread_mutex_unlock (mutex);
 
@@ -109,10 +104,7 @@ handle_game (void *arg)
   notify_start_game (room, PLAYER_A);
   notify_start_game (room, PLAYER_B);
 
-  char turn_msg[BUFSIZ] = { 0 };
-  long turn_time = time (NULL) + 30;
-  build_turn_msg (turn_msg, game->current_player, turn_time);
-  multicast (turn_msg, room);
+  multicast_current_turn (room);
 
   pthread_mutex_lock (mutex);
   game->state = IN_PROGRESS;
