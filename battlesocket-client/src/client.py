@@ -47,7 +47,6 @@ class Client:
             current_message = queue.pop()[0]
             self.read_message(current_message)
             if self.game and self.game.has_ended:
-                
                 break
         self.cleanup()  # Closes the socket
 
@@ -85,6 +84,10 @@ class Client:
             case ProtocolMessages.MSG_TURN:
                 self.game.set_current_turn(message)
                 self.game.fire_shot(self)
+
+    def find_new_game(self):
+        self.cleanup()
+        self.sockfd = self.init_socket()
 
 
     def handle_bad_request(self, message):

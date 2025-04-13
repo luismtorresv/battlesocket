@@ -37,6 +37,7 @@ class Game:
         self.current_player = None
         self.player_letter = None
         self.turn_time = None
+        self.new_game = False
 
     def place_ships(self, board):
         battleships_str = board.split(";")  # Stores all the battleships
@@ -128,6 +129,13 @@ class Game:
                 Send.send_surrender_msg(client)
                 return
             
+            if "NEW GAME" in coordinate.upper().strip(): 
+                Send.send_surrender_msg(client)
+                client.find_new_game()
+                self.new_game = True
+                return
+                
+
             expected_input = constants.EXPECTED_INPUT
 
             # Matches the input with the expected input which should take the form: {A-J}{1-10}
@@ -138,6 +146,7 @@ class Game:
                     "Invalid input, type a coordinate from A-J and a number from 1-10"
                 )
 
+
         Send.send_shoot_msg(client, coordinate)
 
     def surrender(self):
@@ -145,7 +154,7 @@ class Game:
         if self.current_player != self.player_letter:
             print("The opponent has forfit the match. You Won!")
         else:
-            print("You gave up. :(")
+            print("You gave up...")
 
     def start_game(self, message):
         # Uses the word 'board' to split the control information into 2 sides.
@@ -154,6 +163,7 @@ class Game:
         board = board.strip("{}")
         self.place_ships(board)
         self.player_letter = player_letter
+
 
     def end_game(self, message):
         if " " not in message:
