@@ -15,6 +15,8 @@ init_game (Game *game)
 
   Player starting_player = choose_starting_player (game);
 
+  game->state = IN_PROGRESS;
+
   log_event (LOG_INFO, "Initialised game with id: %d, starting player: %c.",
              game->id, starting_player);
 }

@@ -106,10 +106,6 @@ handle_game (void *arg)
 
   multicast_current_turn (room);
 
-  pthread_mutex_lock (mutex);
-  game->state = IN_PROGRESS;
-  pthread_mutex_unlock (mutex);
-
   while (!should_room_finish (room))
     {
       char recv_buffer[BUFSIZ] = { 0 };
