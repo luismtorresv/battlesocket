@@ -10,18 +10,18 @@ class Board:
         self.board = [["_"] * map_size for _ in range(map_size)]
 
     def __str__(self):
-        #Asked chat gpt for help labeling the board as such:
+        # Asked chat gpt for help labeling the board as such:
 
         # Create the header with column numbers 1–10
         header = "  " + " ".join(f"{i+1:2}" for i in range(self.map_size))
-        
+
         # Create the board rows with A–J labels
         rows = []
         for i, row in enumerate(self.board):
-            row_label = chr(ord('A') + i)
+            row_label = chr(ord("A") + i)
             row_str = f"{row_label}  " + "  ".join(row)
             rows.append(row_str)
-        
+
         return header + "\n" + "\n".join(rows)
 
     def place_ship(self, list_coordinates, ship_type):
@@ -132,7 +132,7 @@ class Game:
             print("Its the other player's turn.")
             return
 
-        print("Its your turn!")    
+        print("Its your turn!")
         matched = False
         while not matched:
             try:
@@ -140,12 +140,11 @@ class Game:
             except KeyboardInterrupt:
                 Send.send_surrender_msg(client)
                 return
-            
-            if "NEW GAME" in coordinate.upper().strip(): 
+
+            if "NEW GAME" in coordinate.upper().strip():
                 Send.send_surrender_msg(client)
                 client.find_new_game()
                 return
-                
 
             expected_input = constants.EXPECTED_INPUT
 
@@ -156,7 +155,6 @@ class Game:
                 print(
                     "Invalid input, type a coordinate from A-J and a number from 1-10"
                 )
-
 
         Send.send_shoot_msg(client, coordinate)
 
@@ -175,8 +173,6 @@ class Game:
         self.place_ships(board)
         self.player_letter = player_letter
 
-
-
     def end_game(self, message):
         if " " not in message:
             print("The game ended.")
@@ -185,6 +181,6 @@ class Game:
         elif "SURRENDER" in message:
             self.surrender()
             return
-        
+
         _, player_letter = message.split(" ")
         print(f"Game Over. The winner is: Player {player_letter}")

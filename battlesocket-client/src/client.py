@@ -51,6 +51,7 @@ class Client:
         self.cleanup()  # Closes the socket
 
     def cleanup(self):
+        # We use close instead of shutdown because the former destroys the socket completly, and shutdown prevents the creations of new sockets.
         self.sockfd.close()
 
     def read_message(self, message):
@@ -64,7 +65,7 @@ class Client:
         match prot_message:
             case ProtocolMessages.MSG_START_GAME:
                 self.game.start_game(message)
-                print(f'You are Player {self.game.player_letter}!')
+                print(f"You are Player {self.game.player_letter}!")
                 self.game.print_boards()
             case ProtocolMessages.MSG_HIT:
                 self.game.was_hit(message, self.game.player_letter)
@@ -78,7 +79,7 @@ class Client:
                 self.game.has_ended = True
                 self.game.end_game(message)
             case ProtocolMessages.MSG_BAD_REQUEST:
-                #TODO.
+                # TODO.
                 pass
             case ProtocolMessages.MSG_TURN:
                 self.game.set_current_turn(message)
@@ -88,7 +89,6 @@ class Client:
         self.cleanup()
         self.game = Game()
         self.run()
-
 
     def handle_bad_request(self, message):
         # TODO: Log this.

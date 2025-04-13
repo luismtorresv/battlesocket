@@ -12,6 +12,7 @@ class ProtocolMessages(Enum):
 
 
 class Protocol:
+    # Dollar signs are used to indicate the end of the message
     @classmethod
     def build_shoot_msg(cls, coordinate):
         return f"SHOT {coordinate[0]}{coordinate[1:]}$"
@@ -24,18 +25,19 @@ class Protocol:
     def build_surrender_msg(cls):
         return "SURRENDER$"
 
+
 class Send:
     @classmethod
-    def send_shoot_msg(cls,client,message):
+    def send_shoot_msg(cls, client, message):
         protocol_message = Protocol.build_shoot_msg(message)
         client.sockfd.send(protocol_message.encode("ascii"))
 
     @classmethod
-    def send_input_err_msg(cls,client):
+    def send_input_err_msg(cls, client):
         protocol_message = Protocol.build_input_err_msg()
         client.sockfd.send(protocol_message.encode("ascii"))
 
     @classmethod
-    def send_surrender_msg(cls,client):
+    def send_surrender_msg(cls, client):
         protocol_message = Protocol.build_surrender_msg()
         client.sockfd.send(protocol_message.encode("ascii"))
