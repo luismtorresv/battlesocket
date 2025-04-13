@@ -152,80 +152,37 @@ handle_game (void *arg)
   return NULL;
 }
 
-// Handle a client throughout the entire game session.
+// Handle two clients throughout the entire game session.
 void *
-handle_client (void *arg)
+handle_room (void *arg)
 {
   // Copy of the argument.
   ThreadInfo thread_info = *(ThreadInfo *)arg;
   free (arg);
 
-  Room *rooms = thread_info.rooms;
-  Client base_client = thread_info.client;
-  Room *room = NULL;
+  Client client_a = thread_info.client_a;
+  Client client_b = thread_info.client_b;
 
-  // Search for an available room.
-  for (int i = 0; i < NUMBER_OF_ROOMS; ++i)
-    {
-      Game *game = &(rooms[i].game);
-      pthread_mutex_lock (&rooms[i].mutex);
-      if (game->state == WAITING || game->state == AVAILABLE)
-        {
-          room = &rooms[i];
-          pthread_mutex_unlock (&rooms[i].mutex);
-          break;
-        }
-      pthread_mutex_unlock (&rooms[i].mutex);
-    }
-
+  Room *room = search_available_room (thread_info.rooms);
   if (room == NULL) // We didn't find a room.
     {
-      log_event (LOG_ERROR, "Server is full.");
-      close (base_client.sockfd);
+      log_event (LOG_ERROR, "Server is full. Could not find a room.");
+      close (client_a.sockfd);
+      close (client_b.sockfd);
       return NULL;
     }
 
-  // If we got here, we found a game.
+  // If we got here, we found a free room.
   Game *game = &room->game;
   pthread_mutex_t *mutex = &room->mutex;
-  Client *client = NULL; // Will point to actual client in room.
 
   pthread_mutex_lock (mutex);
-  switch (game->state)
-    {
-    // Is first client unassigned?
-    case AVAILABLE:
-      room->client_a = base_client;
-      room->client_a.player = PLAYER_A;
-      client = &room->client_a;
-      game->state = WAITING;
-      break;
-    // Assign to second client in room.
-    case WAITING:
-      room->client_b = base_client;
-      room->client_b.player = PLAYER_B;
-      client = &room->client_b;
-      game->state = READY_TO_START;
-      break;
-    default:
-      log_event (LOG_ERROR,
-                 "Client tried to join unavailable room with id %d.",
-                 room->id);
-      return NULL;
-    }
-  pthread_mutex_unlock (mutex);
+  room->client_a = client_a;
+  room->client_a.player = PLAYER_A;
+  room->client_b = client_b;
+  room->client_b.player = PLAYER_B;
+  game->state = READY_TO_START;
 
-  // Send JOINED_MATCHMAKING
-  log_event (LOG_INFO, "New client connected");
-  send_joined_matchmaking (client);
-
-  while (game->state == WAITING)
-    {
-      sleep (1);
-    }
-
-  // If the room is READY_TO_START, create the thread to manage the game.
-  pthread_mutex_lock (mutex);
   if (game->state == READY_TO_START)
     {
       pthread_t thread_id;

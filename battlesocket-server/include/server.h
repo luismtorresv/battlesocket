@@ -38,9 +38,9 @@ struct Room
 
 struct ThreadInfo
 {
-  pthread_mutex_t mutex;
-  Client client;
   Room *rooms;
+  Client client_a;
+  Client client_b;
 };
 
 void run_server (const char *log_filename);
@@ -61,9 +61,11 @@ Client *get_current_client (Room *room);
 void handle_message (Room *room, Client *client, char *message);
 void notify_start_game (Room *room, Player player);
 void *handle_game (void *arg);
-void *handle_client (void *arg);
+void *handle_room (void *arg);
 
 void send_to_client (Client *client, const char *message);
 void multicast (const char *message, Room *room);
+
+Room *search_available_room (Room *rooms);
 
 #endif

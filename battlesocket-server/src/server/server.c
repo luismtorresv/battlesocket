@@ -97,29 +97,54 @@ run_server (const char *log_filename)
   socklen_t client_addr_len;
   client_addr_len = sizeof (client_addr);
 
+  int clients_in_waitlist = 0;
+  Client client_a, client_b;
+
   while ((client_socket = accept (server.fd, (struct sockaddr *)&client_addr,
                                   &client_addr_len))
          != -1)
     {
-      pthread_t thread_id;
+      log_event (LOG_INFO, "New client connected");
 
+      Client *current_client;
+      if (clients_in_waitlist == 0)
+        current_client = &client_a;
+      else
+        current_client = &client_b;
+
+      // Add to waitlist.
+      current_client->addr = client_addr;
+      current_client->sockfd = client_socket;
+      ++clients_in_waitlist;
+      send_joined_matchmaking (current_client);
+
+      // Can we start a game?
+      if (clients_in_waitlist < 2)
+        continue;
+
+      // If we got here, we can start a game.
+
+      pthread_t thread_id;
       // Set up the argument to the thread.
       ThreadInfo thread_info;
-      thread_info.client.addr = client_addr;
-      thread_info.client.sockfd = client_socket;
+      thread_info.client_a = client_a;
+      thread_info.client_b = client_b;
       thread_info.rooms = server.rooms;
 
+      // We pass a pointer to this struct.
       ThreadInfo *new_thread_info = malloc (sizeof (ThreadInfo));
       *new_thread_info = thread_info;
 
-      // Create the actual goddamn thread.
-      if (pthread_create (&thread_id, NULL, handle_client,
+      // Create the actual thread.
+      if (pthread_create (&thread_id, NULL, handle_room,
                           (void *)new_thread_info))
         {
           log_event (LOG_ERROR, "Failed to create thread.");
           free (new_thread_info);
         }
       pthread_detach (thread_id);
+
+      clients_in_waitlist = 0; // Reset waitlist.
     }
 
   cleanup_server (server.fd);
