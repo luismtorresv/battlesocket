@@ -72,11 +72,11 @@ init_server (Room *rooms)
   for (int i = 0; i < NUMBER_OF_ROOMS; ++i)
     {
       server.rooms[i].id = i;
+      server.rooms[i].game.id = i;
       if (pthread_mutex_init (&server.rooms[i].mutex, NULL) != 0)
         {
           log_event (LOG_FATAL, "Failed to initialise mutex for room %d.", i);
           cleanup_server (server.fd);
-          exit (1);
         }
     }
 
