@@ -119,6 +119,7 @@ handle_game (void *arg)
       if (bytes_read == 0)
         {
           log_event (LOG_INFO, "Client disconnection.");
+          game->state = FINISHED;
           multicast ("END_GAME$", room);
           break;
         }
@@ -190,22 +191,28 @@ handle_client (void *arg)
   pthread_mutex_t *mutex = &room->mutex;
   Client *client = NULL; // Will point to actual client in room.
 
-  // Is first client unassigned?
   pthread_mutex_lock (mutex);
-  if (room->client_a.sockfd == 0)
+  switch (game->state)
     {
+    // Is first client unassigned?
+    case AVAILABLE:
       room->client_a = base_client;
       room->client_a.player = PLAYER_A;
       client = &room->client_a;
       game->state = WAITING;
-    }
-  else
-    {
-      // Assign to second client in room.
+      break;
+    // Assign to second client in room.
+    case WAITING:
       room->client_b = base_client;
       room->client_b.player = PLAYER_B;
       client = &room->client_b;
       game->state = READY_TO_START;
+      break;
+    default:
+      log_event (LOG_ERROR,
+                 "Client tried to join unavailable room with id %d.",
+                 room->id);
+      return NULL;
     }
   pthread_mutex_unlock (mutex);
 
