@@ -51,7 +51,6 @@ class Client:
         self.cleanup()  # Closes the socket
 
     def cleanup(self):
-        self.sockfd.shutdown(1)
         self.sockfd.close()
 
     def read_message(self, message):
@@ -87,7 +86,8 @@ class Client:
 
     def find_new_game(self):
         self.cleanup()
-        self.sockfd = self.init_socket()
+        self.game = Game()
+        self.run()
 
 
     def handle_bad_request(self, message):

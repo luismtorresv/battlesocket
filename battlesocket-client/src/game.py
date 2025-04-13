@@ -6,10 +6,23 @@ from re import match
 class Board:
     # Inspired by:  https://stackoverflow.com/questions/77575338/battleship-project-with-python
     def __init__(self, map_size):
+        self.map_size = map_size
         self.board = [["_"] * map_size for _ in range(map_size)]
 
     def __str__(self):
-        return "\n".join(" ".join(row) for row in self.board)
+        #Asked chat gpt for help labeling the board as such:
+
+        # Create the header with column numbers 1–10
+        header = "  " + " ".join(f"{i+1:2}" for i in range(self.map_size))
+        
+        # Create the board rows with A–J labels
+        rows = []
+        for i, row in enumerate(self.board):
+            row_label = chr(ord('A') + i)
+            row_str = f"{row_label}  " + "  ".join(row)
+            rows.append(row_str)
+        
+        return header + "\n" + "\n".join(rows)
 
     def place_ship(self, list_coordinates, ship_type):
         for coordinate in list_coordinates:
@@ -37,7 +50,6 @@ class Game:
         self.current_player = None
         self.player_letter = None
         self.turn_time = None
-        self.new_game = False
 
     def place_ships(self, board):
         battleships_str = board.split(";")  # Stores all the battleships
@@ -132,7 +144,6 @@ class Game:
             if "NEW GAME" in coordinate.upper().strip(): 
                 Send.send_surrender_msg(client)
                 client.find_new_game()
-                self.new_game = True
                 return
                 
 
@@ -163,6 +174,7 @@ class Game:
         board = board.strip("{}")
         self.place_ships(board)
         self.player_letter = player_letter
+
 
 
     def end_game(self, message):
