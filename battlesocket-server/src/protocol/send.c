@@ -21,7 +21,7 @@ void
 send_bad_request (Client *client)
 {
   char message[BUFSIZ] = { 0 };
-  sprintf (message, "BAD_REQUEST$");
+  sprintf (message, "BAD_REQUEST" TERMINATOR);
   send_to_client (client, message);
 }
 
@@ -54,7 +54,7 @@ void
 send_joined_matchmaking (Client *client)
 {
   char message[BUFSIZ] = { 0 };
-  sprintf (message, "JOINED_MATCHMAKING$");
+  sprintf (message, "JOINED_MATCHMAKING" TERMINATOR);
   send_to_client (client, message);
 }
 

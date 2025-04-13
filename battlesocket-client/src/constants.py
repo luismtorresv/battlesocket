@@ -16,9 +16,9 @@ VOCAB = {
 }
 
 # HE'LL BE BACK
-TERMINATOR = "$"
+TERMINATOR = "\r\n"
 
 # Code inspired by:
 # https://stackoverflow.com/questions/55486225/check-if-string-has-a-certain-format
 # The expected input is a letter from A-J concatenated with a number from 1-10.
-EXPECTED_INPUT = r"^[A-J]([1-9]|10)$"
+EXPECTED_INPUT = r"^[A-J]([1-9]|10)"

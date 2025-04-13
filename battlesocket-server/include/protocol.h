@@ -3,6 +3,8 @@
 
 #include "server.h"
 
+#define TERMINATOR "\r\n"
+
 typedef enum
 {
   MSG_SHOT,

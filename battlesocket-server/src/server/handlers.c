@@ -5,6 +5,17 @@
 void
 handle_message (Room *room, Client *client, char *message)
 {
+  // Remove terminator token.
+  char *terminator_pos = strstr (message, TERMINATOR);
+  if (!terminator_pos)
+    {
+      send_bad_request (client);
+      return;
+    }
+  *terminator_pos = '\0';
+
+  log_event (LOG_DEBUG, "Player message received: \"%s\"", message);
+
   Game *game = &room->game;
   pthread_mutex_t *mutex = &room->mutex;
 
@@ -115,7 +126,7 @@ handle_game (void *arg)
         {
           log_event (LOG_INFO, "Client disconnection.");
           game->state = FINISHED;
-          multicast ("END_GAME$", room);
+          multicast ("END_GAME" TERMINATOR, room);
           break;
         }
       else if (bytes_read <= 1)
@@ -123,10 +134,7 @@ handle_game (void *arg)
           log_event (LOG_ERROR, "Failed to recv data.");
           break;
         }
-      int newline_pos = strcspn (recv_buffer, "\r\n");
-      recv_buffer[newline_pos] = '\0';
 
-      log_event (LOG_DEBUG, "Player message received");
       handle_message (room, get_current_client (room), recv_buffer);
     }
 

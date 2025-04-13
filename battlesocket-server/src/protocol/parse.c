@@ -33,8 +33,7 @@ parse_shot (const char *message)
                     // `col_val`, it is a bad request.
 
   // Extract row and col.
-  if (sscanf (pos_str, " %c%d%n", &row_char, &col_val, &consumed) != 2
-      || pos_str[consumed] != '$')
+  if (sscanf (pos_str, " %c%d%n", &row_char, &col_val, &consumed) != 2)
     {
       return shot;
     }

@@ -6,7 +6,7 @@
 void
 build_start_game (char *buffer, Player player, const char *ship_data)
 {
-  sprintf (buffer, "START_GAME %c {%s}$", player, ship_data);
+  sprintf (buffer, "START_GAME %c {%s}" TERMINATOR, player, ship_data);
 }
 
 // Build string for response to action message (SHOT, in this case).
@@ -23,25 +23,25 @@ build_action_result (char *buffer, const bool ship_was_hit, const int row,
   int row_as_char = row + 'A';
   int col_as_char = col + 1;
   const char *result = ship_was_hit ? "HIT" : "MISS";
-  char *format = sunk ? "%s %c%d SUNK$" : "%s %c%d$";
+  char *format = sunk ? "%s %c%d SUNK" TERMINATOR : "%s %c%d" TERMINATOR;
   sprintf (buffer, format, result, row_as_char, col_as_char);
 }
 
 void
 build_turn_msg (char *buffer, Player player, long timestamp)
 {
-  sprintf (buffer, "TURN %c %ld$", player, timestamp);
+  sprintf (buffer, "TURN %c %ld" TERMINATOR, player, timestamp);
 }
 
 // Build string for END_GAME message.
 void
 build_end_game (char *buffer, Player winner)
 {
-  sprintf (buffer, "END_GAME %c$", winner);
+  sprintf (buffer, "END_GAME %c" TERMINATOR, winner);
 }
 
 void
 build_end_game_surrender (char *buffer)
 {
-  sprintf (buffer, "END_GAME SURRENDER$");
+  sprintf (buffer, "END_GAME SURRENDER" TERMINATOR);
 }

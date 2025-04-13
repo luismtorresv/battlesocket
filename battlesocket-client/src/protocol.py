@@ -1,5 +1,5 @@
 from enum import Enum
-
+from constants import TERMINATOR
 
 class ProtocolMessages(Enum):
     MSG_START_GAME = 1
@@ -15,15 +15,15 @@ class Protocol:
     # Dollar signs are used to indicate the end of the message
     @classmethod
     def build_shoot_msg(cls, coordinate):
-        return f"SHOT {coordinate[0]}{coordinate[1:]}$"
+        return f"SHOT {coordinate[0]}{coordinate[1:]}{TERMINATOR}"
 
     @classmethod
     def build_input_err_msg(cls):
-        return "BAD_REQUEST INPUT_ERROR$"
+        return f"BAD_REQUEST INPUT_ERROR{TERMINATOR}"
 
     @classmethod
     def build_surrender_msg(cls):
-        return "SURRENDER$"
+        return f"SURRENDER{TERMINATOR}"
 
 
 class Send:
