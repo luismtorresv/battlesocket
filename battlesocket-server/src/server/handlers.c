@@ -110,10 +110,9 @@ handle_game (void *arg)
   game->state = IN_PROGRESS;
   pthread_mutex_unlock (mutex);
 
-  char recv_buffer[BUFSIZ] = { 0 };
   while (!should_room_finish (room))
     {
-      memset (recv_buffer, 0, sizeof (recv_buffer));
+      char recv_buffer[BUFSIZ] = { 0 };
       int bytes_read = recv (get_current_socket_fd (room), recv_buffer,
                              sizeof (recv_buffer) - 1, 0);
       if (bytes_read == 0)
