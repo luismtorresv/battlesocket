@@ -9,14 +9,16 @@ struct ServerInfo
 };
 
 // Local function declarations.
-ServerInfo init_server (Room *rooms);
+ServerInfo init_server (Room *rooms, const char *log_filename);
 void cleanup_server (int server_fd);
 
 // Initialise server with its socket.
 ServerInfo
-init_server (Room *rooms)
+init_server (Room *rooms, const char *log_filename)
 {
   ServerInfo server;
+
+  init_logger (log_filename);
 
   if ((server.fd = socket (AF_INET, SOCK_STREAM, 0)) == -1)
     {
@@ -85,10 +87,10 @@ init_server (Room *rooms)
 
 // Accept incoming client connections and dispatch them.
 void
-run_server ()
+run_server (const char *log_filename)
 {
   Room rooms[NUMBER_OF_ROOMS];
-  ServerInfo server = init_server (rooms);
+  ServerInfo server = init_server (rooms, log_filename);
 
   int client_socket;
   struct sockaddr_in client_addr;
@@ -129,6 +131,7 @@ cleanup_server (int server_fd)
 {
   close (server_fd);
   log_event (LOG_INFO, "Server closed.");
+  close_logger ();
   exit (EXIT_SUCCESS);
   // TODO: Close all sockets of all rooms.
 }
