@@ -138,11 +138,7 @@ class Game:
         print("It's your turn!")
         matched = False
         while not matched:
-            try:
-                coordinate = input("\n").upper().strip()
-            except KeyboardInterrupt:
-                Send.send_surrender_msg(client)
-                return
+            coordinate = input("\n").upper().strip()
 
             if "NEW GAME" in coordinate.upper().strip():
                 Send.send_surrender_msg(client)

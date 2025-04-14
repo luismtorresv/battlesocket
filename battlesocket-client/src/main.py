@@ -3,13 +3,12 @@ import sys
 from client import Client
 
 if __name__ == "__main__":
-    client = Client()
-
-    print("Welcome to Battlesocket!")
     try:
+        client = Client()
+        print("Welcome to Battlesocket!")
         client.username = input("Username: ")
         client.email = input("Email: ")
-    except EOFError:  # The user should not send ^D, but oh well.
+    except:
         print()
         sys.exit(1)
 

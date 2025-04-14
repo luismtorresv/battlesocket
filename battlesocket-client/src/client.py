@@ -3,7 +3,7 @@ import sys
 
 import constants
 from game import Game
-from protocol import ProtocolMessages
+from protocol import ProtocolMessages, Send
 
 
 class Client:
@@ -36,19 +36,22 @@ class Client:
         self.sockfd = self.init_socket()
         queue = []  #  FIFO queue.
 
-        while True:
-            # Receives messages in the form of a stream of data.
-            mensaje = self.sockfd.recv(1024).decode("ascii")
-            if not mensaje:
-                print("error: failed to receive data.")
-                return
+        try:
+            while True:
+                # Receives messages in the form of a stream of data.
+                mensaje = self.sockfd.recv(1024).decode("ascii")
+                if not mensaje:
+                    print("error: failed to receive data.")
+                    return
 
-            queue.append(mensaje.split(constants.TERMINATOR))
-            current_message = queue.pop()[0]
-            self.read_message(current_message)
-            if self.game and self.game.has_ended:
-                break
-        self.cleanup()  # Closes the socket
+                queue.append(mensaje.split(constants.TERMINATOR))
+                current_message = queue.pop()[0]
+                self.read_message(current_message)
+                if self.game and self.game.has_ended:
+                    break
+            self.cleanup()  # Closes the socket
+        except:
+            Send.send_surrender_msg(self)
 
     def cleanup(self):
         # We use close instead of shutdown because the former destroys the socket completly, and shutdown prevents the creations of new sockets.
