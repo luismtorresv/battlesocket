@@ -62,9 +62,9 @@ class Client:
 
     def read_message(self, message):
         prot_message = message.split(" ")[0]
-        prot_message = ProtocolMessages[f"MSG_{prot_message}"]
-
-        if prot_message not in ProtocolMessages:
+        try:
+            prot_message = ProtocolMessages[f"MSG_{prot_message}"]
+        except KeyError:
             print(f"error: {prot_message} not a valid protocol message.")
             return
 
