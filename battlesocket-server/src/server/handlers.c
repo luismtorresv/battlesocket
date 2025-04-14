@@ -42,6 +42,9 @@ handle_message (Room *room, Client *client, char *message)
           return;
         }
 
+      if (client->player != room->game.current_player)
+        return;
+
       log_event (LOG_INFO, "Processing shot of client with IP %s:%ld.",
                  inet_ntoa (client->addr.sin_addr), client->addr.sin_port);
 
