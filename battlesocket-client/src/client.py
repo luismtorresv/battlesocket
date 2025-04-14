@@ -80,6 +80,10 @@ class Client:
                 self.init_matchmaking()
             case ProtocolMessages.MSG_END_GAME:
                 self.game.end_game(message)
+                play_again = input("Do you want to play again? (y/n) ").lower()
+                if play_again != "y":
+                    return
+                self.find_new_game()
             case ProtocolMessages.MSG_TURN:
                 self.game.set_current_turn(message)
                 self.game.fire_shot(self)

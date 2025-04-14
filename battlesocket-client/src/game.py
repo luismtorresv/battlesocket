@@ -141,13 +141,7 @@ class Game:
         expected_input = re.compile(r"^[A-J]([1-9]|10)$", flags=re.ASCII)
         matched = False
         while not matched:
-            coordinate = input("\n").upper().strip()
-
-            if "NEW GAME" in coordinate:
-                Send.send_surrender_msg(client)
-                client.find_new_game()
-                return
-
+            coordinate = input("Coordinate: ").upper().strip()
             matched = re.match(expected_input, coordinate)
             if not matched:
                 print(
