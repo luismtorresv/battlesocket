@@ -134,17 +134,17 @@ Compile with `make` or compile _and run_ with `make run`.
 
 ### Client
 
-Written in Python.
+Written in Python 3 with no third-party dependencies.
 
-No third-party Python modules.
+Tested with Python 3.11.1 on Ubuntu 22.04.
 
-We are running Python 3.11.1 on Ubuntu 22.04.
+```shell
+# Change your working directory to `battlesocket-client`
+cd battlesocket-client
 
-You can either run it
-
-1. from the `battlesocket-client` directory with `python src/main.py`
-
-2. or from the project root directory with `python battlesocket-client/src/main.py`
+# Start Python interpreter. Must pass IP and port of host.
+python src/main.py [server_ip] [server_port]
+```
 
 
 ## Authors

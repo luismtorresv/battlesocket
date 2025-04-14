@@ -7,27 +7,24 @@ from protocol import ProtocolMessages, Send
 
 
 class Client:
-    def __init__(self):
+    def __init__(self, ip, port):
         self.game = Game()
         self.username = None
         self.email = None
         self.sockfd = None
+        self.server_addr = (ip, port)
 
     def init_socket(self):
-        hostname = socket.gethostname()
-        server_ip = socket.gethostbyname(hostname)
-        addr = (server_ip, constants.PORT)
-
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except OSError:
-            print("error: failed to initialise socket.")
+            print("error: failed to initialise socket.", file=sys.stderr)
             sys.exit(1)
 
         try:
-            sock.connect(addr)
+            sock.connect(self.server_addr)
         except OSError:
-            print("error: failed to connect to server.")
+            print(f"error: failed to connect to server at {self.server_addr}.", file=sys.stderr)
             sys.exit(1)
 
         return sock

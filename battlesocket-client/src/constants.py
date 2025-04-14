@@ -1,5 +1,3 @@
-PORT = 8080
-
 BOARD_SIZE = 10
 
 VOCAB = {
