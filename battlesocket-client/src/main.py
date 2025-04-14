@@ -8,7 +8,7 @@ if __name__ == "__main__":
         print("Welcome to Battlesocket!")
         client.username = input("Username: ")
         client.email = input("Email: ")
-    except:
+    except (KeyboardInterrupt):
         print()
         sys.exit(1)
 

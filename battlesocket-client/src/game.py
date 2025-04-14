@@ -1,6 +1,7 @@
+import re
+
 import constants
 from protocol import Send
-import re
 
 
 class Board:
@@ -46,7 +47,6 @@ class Game:
         self.remaining_ships = None
         self.opposite_player_board = Board(constants.BOARD_SIZE)
         self.has_ended = False
-        self.start_time = None
         self.current_player = None
         self.player_letter = None
         self.turn_time = None
@@ -136,6 +136,9 @@ class Game:
             return
 
         print("It's your turn!")
+
+        # The expected input is a letter from A-J concatenated with a number from 1-10.
+        expected_input = re.compile(r"^[A-J]([1-9]|10)$", flags=re.ASCII)
         matched = False
         while not matched:
             coordinate = input("\n").upper().strip()
@@ -145,11 +148,7 @@ class Game:
                 client.find_new_game()
                 return
 
-            # The expected input is a letter from A-J concatenated with a number from 1-10.
-            EXPECTED_INPUT = r"^[A-J]([1-9]|10)$"
-
-            # Matches the input with the expected input which should take the form: {A-J}{1-10}
-            matched = re.match(EXPECTED_INPUT, coordinate, flags=re.ASCII)
+            matched = re.match(expected_input, coordinate)
             if not matched:
                 print(
                     "Invalid input.\n"
@@ -179,7 +178,7 @@ class Game:
             print("The game ended.")
             return
 
-        elif "SURRENDER" in message:
+        if "SURRENDER" in message:
             self.surrender()
             return
 

@@ -51,11 +51,13 @@ class Client:
                 if self.game and self.game.has_ended:
                     break
             self.cleanup()  # Closes the socket
-        except:
+        except (KeyboardInterrupt, EOFError):
             Send.send_surrender_msg(self)
 
     def cleanup(self):
-        # We use close instead of shutdown because the former destroys the socket completly, and shutdown prevents the creations of new sockets.
+        # We use `close` instead of `shutdown` because:
+        # 1. `close` destroys the socket,
+        # 2. and `shutdown` prevents creating new sockets.
         self.sockfd.close()
 
     def read_message(self, message):

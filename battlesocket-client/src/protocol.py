@@ -1,5 +1,7 @@
 from enum import Enum
+
 from constants import TERMINATOR
+
 
 class ProtocolMessages(Enum):
     MSG_START_GAME = 1
