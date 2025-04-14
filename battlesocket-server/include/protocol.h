@@ -3,7 +3,7 @@
 
 #include "server.h"
 
-#define TERMINATOR "\r\n"
+#define TERMINATOR "\n"
 
 typedef enum
 {

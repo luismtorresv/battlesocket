@@ -14,4 +14,4 @@ VOCAB = {
 }
 
 # HE'LL BE BACK
-TERMINATOR = "\r\n"
+TERMINATOR = "\n"

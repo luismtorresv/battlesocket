@@ -69,7 +69,7 @@ memcheck: $(BUILD_DIR)/memcheck.out
 # For testing purposes: clears the screen and connects to server.
 .PHONY: listen
 listen:
-	clear -x && nc -C localhost 8080
+	clear -x && nc localhost 8080
 
 .PHONY: format
 format:

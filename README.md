@@ -42,9 +42,9 @@ messages, as well as the procedures regarding them.
 Following the convention suggested in the instructions handout, the BSP messages
 follow the structure:
 
-    message = message_type data CRLF
+    message = message_type data LF
 
-where CRLF acts as the message terminator.
+where LF acts as the message terminator.
 
 Since our game relies on a client-server architecture, some of the messages are
 specific to either client or server, and not to its counterpart. Even though, in
