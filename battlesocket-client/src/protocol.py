@@ -11,6 +11,10 @@ class ProtocolMessages(Enum):
 
 
 class Protocol:
+    @classmethod
+    def build_join_msg(cls):
+        return f"JOIN{TERMINATOR}"
+
     # Dollar signs are used to indicate the end of the message
     @classmethod
     def build_shoot_msg(cls, coordinate):
@@ -39,4 +43,9 @@ class Send:
     @classmethod
     def send_surrender_msg(cls, client):
         protocol_message = Protocol.build_surrender_msg()
+        client.sockfd.send(protocol_message.encode("ascii"))
+
+    @classmethod
+    def send_join_msg(cls, client):
+        protocol_message = Protocol.build_join_msg()
         client.sockfd.send(protocol_message.encode("ascii"))

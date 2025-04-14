@@ -67,5 +67,7 @@ void send_to_client (Client *client, const char *message);
 void multicast (const char *message, Room *room);
 
 Room *search_available_room (Room *rooms);
+int recvtimeout (int sockfd, char *buf, int buflen, int timeout);
+bool handshake (int client_fd);
 
 #endif

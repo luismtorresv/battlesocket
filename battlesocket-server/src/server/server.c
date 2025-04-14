@@ -104,7 +104,15 @@ run_server (const char *log_filename)
                                   &client_addr_len))
          != -1)
     {
-      log_event (LOG_INFO, "New client connected");
+      log_event (LOG_INFO, "New client connected with fd %d.", client_socket);
+
+      if (!handshake (client_socket))
+        {
+          log_event (LOG_ERROR, "Client with fd %d did not send handshake.",
+                     client_socket);
+          close (client_socket);
+          continue;
+        }
 
       Client *current_client;
       if (clients_in_waitlist == 0)

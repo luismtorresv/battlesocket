@@ -105,12 +105,16 @@ sends this message to notify each client of a board update:
 
 #### Client
 
-##### `BSP_REQUEST`
+##### `JOIN`
 
 > [!WARNING]
 >
-> Not implemented.
+> Not fully implemented. Still missing the nickname
 
+A client that wants to connect to a BSP server must send a handshake message to
+verify that it's a BSP client and prevent unwanted connections:
+
+    join = "JOIN" nickname
 
 ## Project structure
 

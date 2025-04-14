@@ -34,6 +34,7 @@ class Client:
 
     def run(self):
         self.sockfd = self.init_socket()
+        Send.send_join_msg(self)
         queue = []  #  FIFO queue.
 
         try:
