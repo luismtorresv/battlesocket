@@ -15,21 +15,6 @@ should_room_finish (Room *room)
   return (game->state == FINISHED) || is_game_over (get_opposing_board (game));
 }
 
-// Returns the socket file descriptor of the current player.
-int
-get_current_socket_fd (Room *room)
-{
-  switch (room->game.current_player)
-    {
-    case PLAYER_A:
-      return room->client_a.sockfd;
-    case PLAYER_B:
-      return room->client_b.sockfd;
-    default:
-      return -1;
-    }
-}
-
 // Returns a pointer to the client assigned to a certain player.
 Client *
 get_client (Room *room, Player player)

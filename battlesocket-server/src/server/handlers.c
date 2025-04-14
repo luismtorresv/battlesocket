@@ -1,3 +1,5 @@
+#include <poll.h>
+
 #include "protocol.h"
 #include "server.h"
 
@@ -117,25 +119,68 @@ handle_game (void *arg)
 
   multicast_current_turn (room);
 
+  // Based on "Beej’s Guide to Network Programming", section 7.2
+  // "`poll()`---Synchronous I/O Multiplexing":
+  //
+  // "So how can you avoid polling? Not slightly ironically, you can avoid
+  // polling by using the `poll()` system call. In a nutshell, we’re going to
+  // ask the operating system to do all the dirty work for us, and just let us
+  // know when some data is ready to read on which sockets. In the meantime,
+  // our process can go to sleep, saving system resources."
   while (!should_room_finish (room))
     {
-      char recv_buffer[BUFSIZ] = { 0 };
-      int bytes_read = recv (get_current_socket_fd (room), recv_buffer,
-                             sizeof (recv_buffer) - 1, 0);
-      if (bytes_read == 0)
+      const int CLIENTS_PER_ROOM = 2;
+      const int POLL_TIMEOUT = -1; // Infinite timeout.
+
+      struct pollfd pfds[CLIENTS_PER_ROOM];
+      pfds[0].fd = room->client_a.sockfd;
+      pfds[1].fd = room->client_b.sockfd;
+      pfds[0].events = pfds[1].events = POLLIN; // Is socket ready to read?
+
+      int num_events = poll (pfds, CLIENTS_PER_ROOM, POLL_TIMEOUT);
+
+      if (num_events == 0)
         {
-          log_event (LOG_INFO, "Client disconnection.");
-          game->state = FINISHED;
-          multicast ("END_GAME" TERMINATOR, room);
-          break;
-        }
-      else if (bytes_read <= 1)
-        {
-          log_event (LOG_ERROR, "Failed to recv data.");
-          break;
+          log_event (LOG_DEBUG, "Call to poll timed out.");
+          continue;
         }
 
-      handle_message (room, get_current_client (room), recv_buffer);
+      int found_events = 0;
+      for (int i = 0; i < CLIENTS_PER_ROOM && found_events < num_events; i++)
+        {
+          bool pollin_happened = pfds[i].revents & POLLIN;
+
+          if (!pollin_happened)
+            continue;
+
+          char recv_buffer[BUFSIZ] = { 0 };
+          int bytes_read
+              = recv (pfds[i].fd, recv_buffer, sizeof (recv_buffer) - 1, 0);
+          if (bytes_read <= 0)
+            {
+              if (bytes_read == 0)
+                {
+                  log_event (LOG_INFO, "Client disconnection.");
+
+                  pthread_mutex_lock (mutex);
+                  game->state = FINISHED;
+                  multicast ("END_GAME" TERMINATOR, room);
+                  pthread_mutex_unlock (mutex);
+                  return NULL;
+                }
+              else if (bytes_read <= 1)
+                {
+                  log_event (LOG_ERROR, "Failed to recv data.");
+                  return NULL;
+                }
+            }
+          else
+            {
+              bool is_client_a = i == 0;
+              Client *client = is_client_a ? &room->client_a : &room->client_b;
+              handle_message (room, client, recv_buffer);
+            }
+        }
     }
 
   pthread_mutex_lock (mutex);
