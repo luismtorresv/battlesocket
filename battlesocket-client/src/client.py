@@ -70,10 +70,7 @@ class Client:
                 self.game.start_game(message)
                 print(f"You are player {self.game.player_letter}.")
                 self.game.print_boards()
-            case ProtocolMessages.MSG_HIT:
-                self.game.was_hit(message, self.game.player_letter)
-                self.game.print_boards()
-            case ProtocolMessages.MSG_MISS:
+            case ProtocolMessages.MSG_HIT | ProtocolMessages.MSG_MISS:
                 self.game.was_hit(message, self.game.player_letter)
                 self.game.print_boards()
             case ProtocolMessages.MSG_JOINED_MATCHMAKING:
