@@ -31,21 +31,22 @@ class Protocol:
 
 class Send:
     @classmethod
+    def __send(cls, client, message):
+        encoding = "ascii"
+        client.sockfd.send(message.encode(encoding))
+
+    @classmethod
     def send_shoot_msg(cls, client, message):
-        protocol_message = Protocol.build_shoot_msg(message)
-        client.sockfd.send(protocol_message.encode("ascii"))
+        Send.__send(client, Protocol.build_shoot_msg(message))
 
     @classmethod
     def send_input_err_msg(cls, client):
-        protocol_message = Protocol.build_input_err_msg()
-        client.sockfd.send(protocol_message.encode("ascii"))
+        Send.__send(client, Protocol.build_input_err_msg())
 
     @classmethod
     def send_surrender_msg(cls, client):
-        protocol_message = Protocol.build_surrender_msg()
-        client.sockfd.send(protocol_message.encode("ascii"))
+        Send.__send(client, Protocol.build_surrender_msg())
 
     @classmethod
     def send_join_msg(cls, client):
-        protocol_message = Protocol.build_join_msg()
-        client.sockfd.send(protocol_message.encode("ascii"))
+        Send.__send(client, Protocol.build_join_msg())
