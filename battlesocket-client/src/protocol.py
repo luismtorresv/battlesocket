@@ -7,8 +7,7 @@ class ProtocolMessages(Enum):
     MSG_MISS = 3
     MSG_JOINED_MATCHMAKING = 4
     MSG_END_GAME = 5
-    MSG_BAD_REQUEST = 6
-    MSG_TURN = 7
+    MSG_TURN = 6
 
 
 class Protocol:

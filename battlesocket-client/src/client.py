@@ -39,12 +39,12 @@ class Client:
         try:
             while True:
                 # Receives messages in the form of a stream of data.
-                mensaje = self.sockfd.recv(1024).decode("ascii")
-                if not mensaje:
+                message = self.sockfd.recv(1024).decode("ascii")
+                if not message:
                     print("error: failed to receive data.")
                     return
 
-                queue.append(mensaje.split(constants.TERMINATOR))
+                queue.append(message.split(constants.TERMINATOR))
                 current_message = queue.pop()[0]
                 self.read_message(current_message)
                 if self.game and self.game.has_ended:
@@ -76,11 +76,7 @@ class Client:
             case ProtocolMessages.MSG_JOINED_MATCHMAKING:
                 self.init_matchmaking()
             case ProtocolMessages.MSG_END_GAME:
-                self.game.has_ended = True
                 self.game.end_game(message)
-            case ProtocolMessages.MSG_BAD_REQUEST:
-                # TODO.
-                pass
             case ProtocolMessages.MSG_TURN:
                 self.game.set_current_turn(message)
                 self.game.fire_shot(self)
@@ -89,10 +85,6 @@ class Client:
         self.cleanup()
         self.game = Game()
         self.run()
-
-    def handle_bad_request(self, message):
-        # TODO: Log this.
-        _, self.player = message.split(" ")[1]
 
     def init_matchmaking(self):
         print("Awaiting players...")

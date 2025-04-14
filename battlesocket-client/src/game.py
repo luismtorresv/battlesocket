@@ -140,7 +140,7 @@ class Game:
         while not matched:
             coordinate = input("\n").upper().strip()
 
-            if "NEW GAME" in coordinate.upper().strip():
+            if "NEW GAME" in coordinate:
                 Send.send_surrender_msg(client)
                 client.find_new_game()
                 return
@@ -160,7 +160,6 @@ class Game:
         Send.send_shoot_msg(client, coordinate)
 
     def surrender(self):
-        self.has_ended = True
         if self.current_player != self.player_letter:
             print("The opponent has surrendered the match. You won!")
         else:
@@ -175,6 +174,7 @@ class Game:
         self.player_letter = player_letter
 
     def end_game(self, message):
+        self.has_ended = True
         if " " not in message:
             print("The game ended.")
             return
