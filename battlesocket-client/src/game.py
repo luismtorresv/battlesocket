@@ -1,6 +1,6 @@
 import constants
 from protocol import Send
-from re import match
+import re
 
 
 class Board:
@@ -145,10 +145,11 @@ class Game:
                 client.find_new_game()
                 return
 
-            expected_input = constants.EXPECTED_INPUT
+            # The expected input is a letter from A-J concatenated with a number from 1-10.
+            EXPECTED_INPUT = r"^[A-J]([1-9]|10)$"
 
             # Matches the input with the expected input which should take the form: {A-J}{1-10}
-            matched = match(expected_input, coordinate)
+            matched = re.match(EXPECTED_INPUT, coordinate, flags=re.ASCII)
             if not matched:
                 print(
                     "Invalid input.\n"
