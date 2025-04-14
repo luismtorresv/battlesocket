@@ -23,6 +23,7 @@ def main(args):
         sys.exit(1)
 
     client.run()
+    client.cleanup()
 
 
 if __name__ == "__main__":

@@ -24,7 +24,10 @@ class Client:
         try:
             sock.connect(self.server_addr)
         except OSError:
-            print(f"error: failed to connect to server at {self.server_addr}.", file=sys.stderr)
+            print(
+                f"error: failed to connect to server at {self.server_addr}.",
+                file=sys.stderr,
+            )
             sys.exit(1)
 
         return sock
@@ -32,22 +35,24 @@ class Client:
     def run(self):
         self.sockfd = self.init_socket()
         Send.send_join_msg(self)
-        queue = []  #  FIFO queue.
 
         try:
+            queue = []  #  FIFO queue.
             while True:
                 # Receives messages in the form of a stream of data.
-                message = self.sockfd.recv(1024).decode("ascii")
-                if not message:
-                    print("error: failed to receive data.")
+                buffer = self.sockfd.recv(1024).decode("ascii")
+                if not buffer:
+                    print("error: server has disconnected.")
                     return
 
-                queue.append(message.split(constants.TERMINATOR))
-                current_message = queue.pop()[0]
-                self.read_message(current_message)
-                if self.game and self.game.has_ended:
-                    break
-            self.cleanup()  # Closes the socket
+                messages = buffer.split(constants.TERMINATOR)
+                queue.extend(messages)
+                while queue:
+                    current_message = queue.pop()
+                    if current_message != "":
+                        self.read_message(current_message)
+                        if self.game and self.game.has_ended:
+                            return
         except (KeyboardInterrupt, EOFError):
             Send.send_surrender_msg(self)
 
@@ -69,10 +74,8 @@ class Client:
             case ProtocolMessages.MSG_START_GAME:
                 self.game.start_game(message)
                 print(f"You are player {self.game.player_letter}.")
-                self.game.print_boards()
             case ProtocolMessages.MSG_HIT | ProtocolMessages.MSG_MISS:
                 self.game.was_hit(message, self.game.player_letter)
-                self.game.print_boards()
             case ProtocolMessages.MSG_JOINED_MATCHMAKING:
                 self.init_matchmaking()
             case ProtocolMessages.MSG_END_GAME:
@@ -83,6 +86,7 @@ class Client:
                 self.find_new_game()
             case ProtocolMessages.MSG_TURN:
                 self.game.set_current_turn(message)
+                self.game.print_boards()
                 self.game.fire_shot(self)
 
     def find_new_game(self):
