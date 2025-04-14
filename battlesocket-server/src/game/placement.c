@@ -126,5 +126,4 @@ place_ships (Board *board)
     {
       fprintf (stderr, "Error placing submarine\n");
     }
-  ship_index++;
 }
