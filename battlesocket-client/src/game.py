@@ -75,8 +75,12 @@ class Game:
 
     def print_boards(self):
         print(
-            f"Opposing Board:\n{self.opposite_player_board}\n"
-            f"Your Board: \n{self.player_board}"
+            "{:^30}".format("Opposing board"),
+            f"\n{self.opposite_player_board}",
+            "\n",
+            "{:^30}".format("Your board"),
+            f"\n{self.player_board}",
+            sep="",
         )
 
     def was_hit(self, message, player):
@@ -88,7 +92,7 @@ class Game:
             ) = message.split(" ")
             self.remaining_ships -= 1
 
-            print(f"A ship sunk! There are {self.remaining_ships} ships remainings.")
+            print(f"A ship sunk! There are {self.remaining_ships} ships remaining.")
             self.place_hit_or_miss(coordinate, player, msg_type)
         else:
             msg_type, coordinate = message.split(" ")
@@ -121,18 +125,17 @@ class Game:
         return new_set
 
     def set_current_turn(self, message):
-        _, player_letter, time = message.split(
-            " "
-        )  # TODO: timeout. The turn sends the time.
+        # TODO: timeout. The turn sends the time.
+        _, player_letter, time = message.split(" ")
         self.current_player = player_letter
         self.turn_time = time
 
     def fire_shot(self, client):
         if client.game.player_letter != client.game.current_player:
-            print("Its the other player's turn.")
+            print("It's the other player's turn.")
             return
 
-        print("Its your turn!")
+        print("It's your turn!")
         matched = False
         while not matched:
             try:
@@ -151,9 +154,10 @@ class Game:
             # Matches the input with the expected input which should take the form: {A-J}{1-10}
             matched = match(expected_input, coordinate)
             if not matched:
-
                 print(
-                    "Invalid input, type a coordinate from A-J and a number from 1-10"
+                    "Invalid input.\n"
+                    "Type a coordinate from A-J and a number from 1-10"
+                    " (e.g. D9 or A10)"
                 )
 
         Send.send_shoot_msg(client, coordinate)
@@ -161,9 +165,9 @@ class Game:
     def surrender(self):
         self.has_ended = True
         if self.current_player != self.player_letter:
-            print("The opponent has forfit the match. You Won!")
+            print("The opponent has surrendered the match. You won!")
         else:
-            print("You gave up...")
+            print("You gave up... Your opponent wins...")
 
     def start_game(self, message):
         # Uses the word 'board' to split the control information into 2 sides.
@@ -183,4 +187,4 @@ class Game:
             return
 
         _, player_letter = message.split(" ")
-        print(f"Game Over. The winner is: Player {player_letter}")
+        print(f"Game over! Player {player_letter} won!")

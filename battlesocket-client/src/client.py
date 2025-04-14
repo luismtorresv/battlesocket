@@ -65,7 +65,7 @@ class Client:
         match prot_message:
             case ProtocolMessages.MSG_START_GAME:
                 self.game.start_game(message)
-                print(f"You are Player {self.game.player_letter}!")
+                print(f"You are player {self.game.player_letter}.")
                 self.game.print_boards()
             case ProtocolMessages.MSG_HIT:
                 self.game.was_hit(message, self.game.player_letter)
