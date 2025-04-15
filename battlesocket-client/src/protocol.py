@@ -1,3 +1,5 @@
+import logging
+import sys
 from enum import Enum
 
 from constants import TERMINATOR
@@ -35,7 +37,11 @@ class Send:
     @classmethod
     def __send(cls, client, message):
         encoding = "ascii"
-        client.sockfd.send(message.encode(encoding))
+        try:
+            client.sockfd.send(message.encode(encoding))
+        except ConnectionError:
+            logging.error("Failed to send.")
+            sys.exit(1)
 
     @classmethod
     def send_shoot_msg(cls, client, message):
