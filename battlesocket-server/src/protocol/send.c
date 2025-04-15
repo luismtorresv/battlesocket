@@ -53,13 +53,10 @@ send_joined_matchmaking (Client *client)
 void
 multicast_current_turn (Room *room)
 {
-  const int OFFSET = 30; // In seconds.
-  char message[BUFSIZ] = { 0 };
   Game *game = &room->game;
 
-  long turn_time = time (NULL) + OFFSET;
-  Player current_player = game->current_player;
-  build_turn_msg (message, current_player, turn_time);
+  char message[BUFSIZ] = { 0 };
+  build_turn_msg (message, game->current_player, room->turn_max_timeval);
   multicast (message, room);
 }
 
@@ -67,9 +64,12 @@ void
 multicast_end_game (Room *room, Player player, EndGameReason reason)
 {
   // Static string table to map enum to a string.
-  static const char *reason_strings[] = { [DISCONNECTION] = "DISCONNECTION",
-                                          [WINNER] = "WINNER",
-                                          [SURRENDER] = "SURRENDER" };
+  static const char *reason_strings[] = {
+    [DISCONNECTION] = "DISCONNECTION",
+    [WINNER] = "WINNER",
+    [SURRENDER] = "SURRENDER",
+    [TIMEOUT] = "TIMEOUT",
+  };
 
   if (
       // Bounds check before dereferencing.

@@ -4,6 +4,30 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 
+void
+room_change_turn (Room *room)
+{
+  const int TURN_TIME_SECS = 30;
+
+  change_turn (&room->game);
+
+  room->turn_max_timeval = get_current_time () + TURN_TIME_SECS;
+
+  multicast_current_turn (room);
+}
+
+time_t
+get_current_time ()
+{
+  time_t current_time = time (NULL);
+  if (current_time == (time_t)(-1))
+    {
+      log_event (LOG_ERROR, "Failed to get current time.");
+      exit (EXIT_FAILURE);
+    }
+  return current_time;
+}
+
 Room *
 search_available_room (Room *rooms)
 {

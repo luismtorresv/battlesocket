@@ -17,6 +17,7 @@ typedef enum
   DISCONNECTION = 0,
   WINNER,
   SURRENDER,
+  TIMEOUT,
 } EndGameReason;
 
 typedef struct Shot Shot;

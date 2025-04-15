@@ -1,7 +1,10 @@
 #include <poll.h>
+#include <time.h>
 
 #include "protocol.h"
 #include "server.h"
+
+#define TO_MILLISECONDS(x) (x * 1000)
 
 // Handle a message of the protocol.
 void
@@ -71,8 +74,7 @@ handle_message (Room *room, Client *client, char *message)
       pthread_mutex_lock (mutex);
       if (!is_game_over (opposing_board))
         {
-          change_turn (game);
-          multicast_current_turn (room);
+          room_change_turn (room);
         }
       pthread_mutex_unlock (mutex);
 
@@ -116,7 +118,7 @@ handle_game (void *arg)
   notify_start_game (room, PLAYER_A);
   notify_start_game (room, PLAYER_B);
 
-  multicast_current_turn (room);
+  room_change_turn (room);
 
   // Based on "Beej’s Guide to Network Programming", section 7.2
   // "`poll()`---Synchronous I/O Multiplexing":
@@ -129,18 +131,26 @@ handle_game (void *arg)
   while (!should_room_finish (room))
     {
       const int CLIENTS_PER_ROOM = 2;
-      const int POLL_TIMEOUT = -1; // Infinite timeout.
 
       struct pollfd pfds[CLIENTS_PER_ROOM];
       pfds[0].fd = room->client_a.sockfd;
       pfds[1].fd = room->client_b.sockfd;
       pfds[0].events = pfds[1].events = POLLIN; // Is socket ready to read?
 
-      int num_events = poll (pfds, CLIENTS_PER_ROOM, POLL_TIMEOUT);
+      time_t current_time = get_current_time ();
+      time_t real_timeout = room->turn_max_timeval - current_time;
+      int num_events
+          = poll (pfds, CLIENTS_PER_ROOM, TO_MILLISECONDS (real_timeout));
 
       if (num_events == 0)
         {
-          log_event (LOG_DEBUG, "Call to poll timed out.");
+          log_event (LOG_DEBUG,
+                     "Server didn't get action message"
+                     " from player %c"
+                     " in %d seconds.",
+                     room->game.current_player, real_timeout);
+          game->state = FINISHED;
+          multicast_end_game (room, room->game.current_player, TIMEOUT);
           continue;
         }
 

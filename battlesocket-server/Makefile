@@ -29,6 +29,8 @@ CFLAGS  = -Wall
 CFLAGS += -Wextra
 CFLAGS += -Werror
 CFLAGS += -Wpedantic
+CFLAGS += -Wunused
+CFLAGS += -Wunreachable-code
 CFLAGS += -pthread
 CFLAGS += -g
 
