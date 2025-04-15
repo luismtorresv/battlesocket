@@ -33,8 +33,7 @@ init_server (Room *rooms, const char *log_filename)
   };
 
   int reuse = 1;
-  if (setsockopt (server.fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse))
-      == -1)
+  if (setsockopt (server.fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse)))
     {
       log_event (LOG_ERROR, "Failed to set SO_REUSEADDR.");
       exit (1);
@@ -42,21 +41,19 @@ init_server (Room *rooms, const char *log_filename)
 
   int keepalive = 1;
   if (setsockopt (server.fd, SOL_SOCKET, SO_KEEPALIVE, &keepalive,
-                  sizeof (reuse))
-      == -1)
+                  sizeof (reuse)))
     {
       log_event (LOG_ERROR, "Failed to set SO_KEEPALIVE.");
       exit (1);
     }
 
-  if (bind (server.fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr))
-      == -1)
+  if (bind (server.fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr)))
     {
       log_event (LOG_ERROR, "Failed to bind.");
       exit (1);
     }
 
-  if (listen (server.fd, MAX_CLIENTS) == -1)
+  if (listen (server.fd, MAX_CLIENTS))
     {
       log_event (LOG_ERROR, "Failed to listen.");
       exit (1);
@@ -101,8 +98,7 @@ run_server (const char *log_filename)
   Client client_a, client_b;
 
   while ((client_socket = accept (server.fd, (struct sockaddr *)&client_addr,
-                                  &client_addr_len))
-         != -1)
+                                  &client_addr_len)))
     {
       log_event (LOG_INFO, "New client connected with fd %d.", client_socket);
 
