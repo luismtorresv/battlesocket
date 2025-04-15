@@ -73,17 +73,17 @@ replied to with a `BAD_REQUEST` message.
 
 ##### `JOINED_MATCHMAKING`
 
-When a client joins a game server, it is assigned a letter:
+When a client joins a game server, we send the following message:
 
-    joined_matchmaking = "JOINED_MATCHMAKING" player_letter
+    joined_matchmaking = "JOINED_MATCHMAKING"
 
 ##### `START_GAME`
 
 When a game room has been filled, i.e., there are two clients connected, the
-server sends a notification to both of them, specifying the start time, who goes
-first, and each player's board:
+server sends a notification to both of them, specifying their letters 
+and each player's board:
 
-    start_game = "START_GAME" "start_time:"unix_time "initial_player:"letter "board:""{ (ship_type)":""}"
+    start_game = "START_GAME" player_letter "{ (ship_type)":""}"
 
 > [!WARNING]
 >
@@ -110,14 +110,21 @@ Thus we have these possible messages:
 When a shot sent by the client results in a hit, the server sends this message
 to notify each client of a board update:
 
-    hit = "HIT" coordinate "SUNK" "next:"player_letter
+    hit = "HIT" coordinate | "HIT" coordinate "SUNK" 
 
 ##### `MISS`
 
 Similarly, when a shot sent by the client does _not_ result in a hit, the server
 sends this message to notify each client of a board update:
 
-    miss = "MISS" coordinate "next:"player_letter
+    miss = "MISS" coordinate 
+
+##### `TURN`
+
+When a player shot sent by a client is processed, it tells both players who
+goes next through the following message:
+
+    turn = "TURN" player_letter "unix_time" 
 
 #### Client
 
@@ -131,6 +138,20 @@ A client that wants to connect to a BSP server must send a handshake message to
 verify that it's a BSP client and prevent unwanted connections:
 
     join = "JOIN" nickname
+
+##### `SHOT`
+
+When a player inputs a valid coordinate, the client sends a shot message 
+with its corresponding values.
+
+    shot = "SHOT" coordinate 
+
+##### `SURRENDER`
+
+When a player gives up, the client sends the server a notification with the
+following message: 
+
+    surrender = "SURRENDER"
 
 ## Project structure
 
