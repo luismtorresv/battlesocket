@@ -96,6 +96,9 @@ class Client:
                 else:
                     print("It's your turn!")
                 self.game.fire_shot(self)
+            case ProtocolMessages.MSG_BAD_REQUEST:
+                # Ignore bad requests. Just log them.
+                logging.error("Client got bad request message.")
 
     def find_new_game(self):
         logging.info("User chose to find new game.")
