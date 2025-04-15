@@ -1,5 +1,6 @@
 import socket
 import sys
+import logging
 
 import constants
 from game import Game
@@ -34,8 +35,9 @@ class Client:
 
     def run(self):
         self.sockfd = self.init_socket()
-        Send.send_join_msg(self)
+        logging.info("Client connected to server with file descriptor %s", self.sockfd.fileno())
 
+        Send.send_join_msg(self)
         try:
             queue = []  #  FIFO queue.
             while True:
@@ -43,6 +45,10 @@ class Client:
                 buffer = self.sockfd.recv(1024).decode("ascii")
                 if not buffer:
                     print("error: server has disconnected.")
+                
+                if not buffer:
+                    err_message = "error: failed to receive data."
+                    logging.error("%s", err_message)
                     return
 
                 messages = buffer.split(constants.TERMINATOR)
@@ -56,12 +62,14 @@ class Client:
         except (KeyboardInterrupt, EOFError):
             print("You gave up... Your opponent wins...")
             Send.send_surrender_msg(self)
+            return
 
     def cleanup(self):
         # We use `close` instead of `shutdown` because:
         # 1. `close` destroys the socket,
         # 2. and `shutdown` prevents creating new sockets.
         self.sockfd.close()
+        logging.info("Client connection with server has ended.")
 
     def read_message(self, message):
         prot_message = message.split(" ")[0]
@@ -71,9 +79,11 @@ class Client:
             print(f"error: {prot_message} not a valid protocol message.")
             return
 
+        logging.info(message)
         match prot_message:
             case ProtocolMessages.MSG_START_GAME:
                 self.game.start_game(message)
+                logging.info("Game has started.")
                 print(f"You are player {self.game.player_letter}.")
             case ProtocolMessages.MSG_HIT | ProtocolMessages.MSG_MISS:
                 self.game.was_hit(message, self.game.player_letter)
@@ -91,9 +101,11 @@ class Client:
                 self.game.fire_shot(self)
 
     def find_new_game(self):
+        logging.info("Client chose to find new game.")
         self.cleanup()
         self.game = Game()
         self.run()
 
     def init_matchmaking(self):
+        logging.info("Client is waiting for other players.")
         print("Awaiting players...")

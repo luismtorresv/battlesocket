@@ -3,9 +3,11 @@ import sys
 from ipaddress import ip_address
 
 from client import Client
+from logger import Logger
 
 
 def main(args):
+    Logger("client.log") #Creates the log in its respective file.
     try:
         ip = args.ip
         port = args.port

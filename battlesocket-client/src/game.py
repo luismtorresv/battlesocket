@@ -2,6 +2,7 @@ import re
 import sys
 import textwrap
 
+import logging
 import constants
 from protocol import Send
 
@@ -151,8 +152,20 @@ class Game:
                     "Type a coordinate from A-J and a number from 1-10"
                     " (e.g. D9 or A10)"
                 )
-
+        logging.info(
+            "Player %s with IP %s fired a shot in position: %s",
+            self.player_letter,
+            client.server_addr[0],
+            coordinate,
+        )
         Send.send_shoot_msg(client, coordinate)
+
+    def surrender(self):
+        logging.debug("The client surrendered.")
+        if self.current_player != self.player_letter:
+            print("The opponent has surrendered the match. You won!")
+        else:
+            print("You gave up... Your opponent wins...")
 
     def start_game(self, message):
         # Uses the word 'board' to split the control information into 2 sides.
