@@ -68,7 +68,7 @@ Player choose_starting_player (Game *game);
 
 void change_turn (Game *game);
 
-int place_ship (Board *board, const char *name, int length, int ship_index);
+int place_ship (Board *board, const char *name, int length);
 void place_ships (Board *board);
 
 bool is_valid_shot (int row, int col);

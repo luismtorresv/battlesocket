@@ -14,10 +14,9 @@ random_int (int min, int max)
 // Place a ship in a game board.
 // - `name` is the type of ship.
 // - `length` is the number of cells it occupies.
-// - `ship_index` is the index in the `ships` member of `Board`.
 // Returns 1 if placed, 0 if it failed.
 int
-place_ship (Board *board, const char *name, int length, int ship_index)
+place_ship (Board *board, const char *name, int length)
 {
   bool was_placed = false;
   for (int attempts = 0; !was_placed && attempts < 100; ++attempts)
@@ -46,12 +45,14 @@ place_ship (Board *board, const char *name, int length, int ship_index)
         continue;
 
       // Placing the ship
-      board->ships[ship_index].name = name;
-      board->ships[ship_index].length = length;
-      board->ships[ship_index].orientation = orientation;
-      board->ships[ship_index].start_row = start_row;
-      board->ships[ship_index].start_col = start_col;
-      board->ships[ship_index].hits = 0;
+      board->ships[board->ship_count] = (Ship){
+        .name = name,
+        .length = length,
+        .orientation = orientation,
+        .start_row = start_row,
+        .start_col = start_col,
+        .hits = 0,
+      };
 
       // Update grid and ship_map
       for (int i = 0; i < length; i++)
@@ -59,8 +60,10 @@ place_ship (Board *board, const char *name, int length, int ship_index)
           int r = start_row + (orientation == 1 ? i : 0);
           int c = start_col + (orientation == 0 ? i : 0);
           board->grid[r][c] = SHIP;
-          board->ship_map[r][c] = ship_index;
+          board->ship_map[r][c] = board->ship_count;
         }
+
+      ++board->ship_count;
       was_placed = true;
     }
 
@@ -76,49 +79,48 @@ place_ships (Board *board)
   // 2 Cruisers (3),
   // 2 Destroyers (2),
   // 3 Submarines (1)
-  int ship_index = 0;
 
   // Carrier
-  if (!place_ship (board, "carrier", 5, ship_index++))
+  if (!place_ship (board, "carrier", 5))
     {
       fprintf (stderr, "Error placing carrier\n");
     }
   // Battleship
-  if (!place_ship (board, "battleship", 4, ship_index++))
+  if (!place_ship (board, "battleship", 4))
     {
       fprintf (stderr, "Error placing battleship\n");
     }
 
   // 2 Cruisers
-  if (!place_ship (board, "cruiser", 3, ship_index++))
+  if (!place_ship (board, "cruiser", 3))
     {
       fprintf (stderr, "Error placing cruiser\n");
     }
-  if (!place_ship (board, "cruiser", 3, ship_index++))
+  if (!place_ship (board, "cruiser", 3))
     {
       fprintf (stderr, "Error placing cruiser\n");
     }
 
   // 2 Destroyers
-  if (!place_ship (board, "destroyer", 2, ship_index++))
+  if (!place_ship (board, "destroyer", 2))
     {
       fprintf (stderr, "Error placing destroyer\n");
     }
-  if (!place_ship (board, "destroyer", 2, ship_index++))
+  if (!place_ship (board, "destroyer", 2))
     {
       fprintf (stderr, "Error placing destroyer\n");
     }
 
   // 3 Submarines
-  if (!place_ship (board, "submarine", 1, ship_index++))
+  if (!place_ship (board, "submarine", 1))
     {
       fprintf (stderr, "Error placing submarine\n");
     }
-  if (!place_ship (board, "submarine", 1, ship_index++))
+  if (!place_ship (board, "submarine", 1))
     {
       fprintf (stderr, "Error placing submarine\n");
     }
-  if (!place_ship (board, "submarine", 1, ship_index++))
+  if (!place_ship (board, "submarine", 1))
     {
       fprintf (stderr, "Error placing submarine\n");
     }
