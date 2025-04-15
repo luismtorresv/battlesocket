@@ -32,16 +32,3 @@ build_turn_msg (char *buffer, Player player, long timestamp)
 {
   sprintf (buffer, "TURN %c %ld" TERMINATOR, player, timestamp);
 }
-
-// Build string for END_GAME message.
-void
-build_end_game (char *buffer, Player winner)
-{
-  sprintf (buffer, "END_GAME %c" TERMINATOR, winner);
-}
-
-void
-build_end_game_surrender (char *buffer)
-{
-  sprintf (buffer, "END_GAME SURRENDER" TERMINATOR);
-}

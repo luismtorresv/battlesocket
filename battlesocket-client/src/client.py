@@ -54,6 +54,7 @@ class Client:
                         if self.game and self.game.has_ended:
                             return
         except (KeyboardInterrupt, EOFError):
+            print("You gave up... Your opponent wins...")
             Send.send_surrender_msg(self)
 
     def cleanup(self):

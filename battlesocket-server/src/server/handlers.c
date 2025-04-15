@@ -84,11 +84,7 @@ handle_message (Room *room, Client *client, char *message)
                  inet_ntoa (client->addr.sin_addr), client->addr.sin_port);
 
       game->state = FINISHED;
-
-      // Notify both clients.
-      char buffer[BUFSIZ] = { 0 };
-      build_end_game_surrender (buffer);
-      multicast (buffer, room);
+      multicast_end_game (room, client->player, SURRENDER);
     }
 }
 
@@ -156,6 +152,9 @@ handle_game (void *arg)
           if (!pollin_happened)
             continue;
 
+          bool is_client_a = i == 0;
+          Client *client = is_client_a ? &room->client_a : &room->client_b;
+
           char recv_buffer[BUFSIZ] = { 0 };
           int bytes_read
               = recv (pfds[i].fd, recv_buffer, sizeof (recv_buffer) - 1, 0);
@@ -167,7 +166,7 @@ handle_game (void *arg)
 
                   pthread_mutex_lock (mutex);
                   game->state = FINISHED;
-                  multicast ("END_GAME" TERMINATOR, room);
+                  multicast_end_game (room, client->player, DISCONNECTION);
                   pthread_mutex_unlock (mutex);
                   return NULL;
                 }
@@ -179,8 +178,6 @@ handle_game (void *arg)
             }
           else
             {
-              bool is_client_a = i == 0;
-              Client *client = is_client_a ? &room->client_a : &room->client_b;
               handle_message (room, client, recv_buffer);
             }
         }
@@ -190,12 +187,8 @@ handle_game (void *arg)
   if (is_game_over (get_opposing_board (game)))
     {
       game->state = FINISHED;
-
-      // Notify who won.
-      char end_msg[BUFSIZ] = { 0 };
       Player winner = game->current_player;
-      build_end_game (end_msg, winner);
-      multicast (end_msg, room);
+      multicast_end_game (room, winner, WINNER); // Notify who won.
       log_event (LOG_INFO, "Game of room %d is over. Player %c won.", room->id,
                  winner);
     }

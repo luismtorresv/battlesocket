@@ -89,6 +89,22 @@ first, and each player's board:
 >
 > This section is incomplete.
 
+##### `END_GAME`
+
+When a game ends the server notifies each client of the reason for ending
+the game. There are three reasons to end a game:
+
+1. a player won the game
+
+2. a player disconnected from the server
+
+3. a player sent a surrender message to the server
+
+Thus we have these possible messages:
+
+    end_game = "END_GAME" cause player_letter
+    cause    = "WINNER" | "SURRENDER" | "DISCONNECTION"
+
 ##### `HIT`
 
 When a shot sent by the client results in a hit, the server sends this message

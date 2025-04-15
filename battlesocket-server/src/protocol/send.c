@@ -1,6 +1,8 @@
 #include "protocol.h"
 #include "server.h"
 
+#define COUNT_OF(x) (sizeof (x) / sizeof ((x)[0]))
+
 // Sends a message to a client.
 void
 send_to_client (Client *client, const char *message)
@@ -37,17 +39,6 @@ send_start_game (Client *client, Player player, const char *ship_data)
   send_to_client (client, message);
 }
 
-// Send an END_GAME message to `client` with the letter of the `winner`.
-// - `winner` is the letter that identifies the player who won.
-// TODO: Don't use this for notifying of disconnections.
-void
-send_end_game (Client *client, Player winner)
-{
-  char message[BUFSIZ] = { 0 };
-  build_end_game (message, winner);
-  send_to_client (client, message);
-}
-
 // Send a JOINED_MATCHMAKING message to `client` with their corresponding
 // `player` letter.
 void
@@ -69,5 +60,28 @@ multicast_current_turn (Room *room)
   long turn_time = time (NULL) + OFFSET;
   Player current_player = game->current_player;
   build_turn_msg (message, current_player, turn_time);
+  multicast (message, room);
+}
+
+void
+multicast_end_game (Room *room, Player player, EndGameReason reason)
+{
+  // Static string table to map enum to a string.
+  static const char *reason_strings[] = { [DISCONNECTION] = "DISCONNECTION",
+                                          [WINNER] = "WINNER",
+                                          [SURRENDER] = "SURRENDER" };
+
+  if (
+      // Bounds check before dereferencing.
+      (reason < 0 || reason >= COUNT_OF (reason_strings))
+      // Check whteher it's a null pointer (i.e. is string above unitialised?)
+      || !reason_strings[reason])
+    exit (EXIT_FAILURE);
+
+  char message[BUFSIZ] = { 0 };
+  const char *reason_string = reason_strings[reason];
+
+  snprintf (message, sizeof (message), "END_GAME %s %c" TERMINATOR,
+            reason_string, player);
   multicast (message, room);
 }

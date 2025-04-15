@@ -1,4 +1,6 @@
 import re
+import sys
+import textwrap
 
 import constants
 from protocol import Send
@@ -152,12 +154,6 @@ class Game:
 
         Send.send_shoot_msg(client, coordinate)
 
-    def surrender(self):
-        if self.current_player != self.player_letter:
-            print("The opponent has surrendered the match. You won!")
-        else:
-            print("You gave up... Your opponent wins...")
-
     def start_game(self, message):
         # Uses the word 'board' to split the control information into 2 sides.
         message = message.split(" ", maxsplit=2)
@@ -168,13 +164,34 @@ class Game:
 
     def end_game(self, message):
         self.has_ended = True
-        if " " not in message:
-            print("The game ended.")
+
+        pattern = re.compile(
+            textwrap.dedent(
+                r"""
+                ^  # Start of line
+                END_GAME
+                \s
+                (?P<reason>WINNER|SURRENDER|DISCONNECTION)  # Why did the game end?
+                \s
+                (?P<player>A|B) # Who won? (Or surrendered?)
+                $ # End of line
+                """
+            ),
+            flags=re.VERBOSE,
+        )
+        match = re.match(pattern, message)
+        if not match:
+            print("error: couldn't parse END_GAME message", file=sys.stderr)
             return
 
-        if "SURRENDER" in message:
-            self.surrender()
-            return
-
-        _, player_letter = message.split(" ")
-        print(f"Game over! Player {player_letter} won!")
+        parsed_message = match.groupdict()
+        match parsed_message["reason"]:
+            case "SURRENDER":
+                if self.player_letter == parsed_message["player"]:
+                    print("You gave up... Your opponent wins...")
+                else:
+                    print("The opponent has surrendered the match. You won!")
+            case "WINNER":
+                print(f"Game over! Player {parsed_message['player']} won.")
+            case "DISCONNECTION":
+                print("Your opponent has disconnected. So... you win?")
