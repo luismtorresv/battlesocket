@@ -90,6 +90,11 @@ class Client:
             case ProtocolMessages.MSG_TURN:
                 self.game.set_current_turn(message)
                 self.game.print_boards()
+                if self.game.player_letter != self.game.current_player:
+                    print("It's the other player's turn.")
+                    return
+                else:
+                    print("It's your turn!")
                 self.game.fire_shot(self)
 
     def find_new_game(self):

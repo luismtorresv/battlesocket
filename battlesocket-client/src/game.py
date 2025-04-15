@@ -3,6 +3,7 @@ import re
 import textwrap
 
 import constants
+from inputimeout import SocketReadAvailable, TimeoutOcurred, inputimeout
 from protocol import Send
 
 
@@ -133,26 +134,36 @@ class Game:
         self.turn_time = time
 
     def fire_shot(self, client):
-        if client.game.player_letter != client.game.current_player:
-            print("It's the other player's turn.")
-            return
-
-        print("It's your turn!")
-
         # The expected input is a letter from A-J concatenated with a number from 1-10.
         expected_input = re.compile(r"^[A-J]([1-9]|10)$", flags=re.ASCII)
         matched = False
         while not matched:
-            coordinate = input("Coordinate: ").upper().strip()
-            matched = re.match(expected_input, coordinate)
-            if not matched:
-                print(
-                    "Invalid input.\n"
-                    "Type a coordinate from A-J and a number from 1-10"
-                    " (e.g. D9 or A10)"
+            try:
+                coordinate = inputimeout(client.sockfd, "Coordinate: ")
+                coordinate = coordinate.upper().strip()
+
+                matched = re.match(expected_input, coordinate)
+                if not matched:
+                    print(
+                        "Invalid input.\n"
+                        "Type a coordinate from A-J and a number from 1-10"
+                        " (e.g. D9 or A10)"
+                    )
+                else:
+                    logging.info("Fired a shot at %s.", coordinate)
+                    Send.send_shoot_msg(client, coordinate)
+            except SocketReadAvailable:
+                # HACK: We're not actually checking whether the server sent an
+                # `END_GAME` message due to a timeout.
+                print("You took too long to play. You lost.")
+                client.game.has_ended = True
+                return
+            except TimeoutOcurred:
+                logging.error(
+                    "User took too long to play, but server didn't send anything"
                 )
-        logging.info("Fired a shot at %s.", coordinate)
-        Send.send_shoot_msg(client, coordinate)
+                client.cleanup()
+                sys.exit(1)
 
     def start_game(self, message):
         # Uses the word 'board' to split the control information into 2 sides.
