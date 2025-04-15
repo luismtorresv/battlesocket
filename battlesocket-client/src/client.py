@@ -1,6 +1,6 @@
+import logging
 import socket
 import sys
-import logging
 
 import constants
 from game import Game
@@ -19,24 +19,20 @@ class Client:
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         except OSError:
-            print("error: failed to initialise socket.", file=sys.stderr)
+            logging.error("Failed to initialise socket.")
             sys.exit(1)
 
         try:
             sock.connect(self.server_addr)
         except OSError:
-            print(
-                f"error: failed to connect to server at {self.server_addr}.",
-                file=sys.stderr,
-            )
+            logging.error("Failed to connect to server at %s.", self.server_addr)
             sys.exit(1)
 
+        logging.info("Client connected to server at %s.", self.server_addr)
         return sock
 
     def run(self):
         self.sockfd = self.init_socket()
-        logging.info("Client connected to server with file descriptor %s", self.sockfd.fileno())
-
         Send.send_join_msg(self)
         try:
             queue = []  #  FIFO queue.
@@ -44,11 +40,7 @@ class Client:
                 # Receives messages in the form of a stream of data.
                 buffer = self.sockfd.recv(1024).decode("ascii")
                 if not buffer:
-                    print("error: server has disconnected.")
-                
-                if not buffer:
-                    err_message = "error: failed to receive data."
-                    logging.error("%s", err_message)
+                    logging.error("error: server has disconnected.")
                     return
 
                 messages = buffer.split(constants.TERMINATOR)
@@ -69,17 +61,17 @@ class Client:
         # 1. `close` destroys the socket,
         # 2. and `shutdown` prevents creating new sockets.
         self.sockfd.close()
-        logging.info("Client connection with server has ended.")
+        logging.info("Closed connection with %s.", self.server_addr)
 
     def read_message(self, message):
         prot_message = message.split(" ")[0]
         try:
             prot_message = ProtocolMessages[f"MSG_{prot_message}"]
         except KeyError:
-            print(f"error: {prot_message} not a valid protocol message.")
+            logging.error('"%s" is not a valid protocol message.', prot_message)
             return
 
-        logging.info(message)
+        logging.info('Received message: "%s".', message)
         match prot_message:
             case ProtocolMessages.MSG_START_GAME:
                 self.game.start_game(message)
@@ -101,11 +93,11 @@ class Client:
                 self.game.fire_shot(self)
 
     def find_new_game(self):
-        logging.info("Client chose to find new game.")
+        logging.info("User chose to find new game.")
         self.cleanup()
         self.game = Game()
         self.run()
 
     def init_matchmaking(self):
-        logging.info("Client is waiting for other players.")
+        logging.info("Waiting for other players.")
         print("Awaiting players...")
