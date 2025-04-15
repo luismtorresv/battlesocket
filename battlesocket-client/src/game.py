@@ -171,7 +171,7 @@ class Game:
                 ^  # Start of line
                 END_GAME
                 \s
-                (?P<reason>WINNER|SURRENDER|DISCONNECTION)  # Why did the game end?
+                (?P<reason>WINNER|SURRENDER|DISCONNECTION|TIMEOUT)  # Why did the game end?
                 \s
                 (?P<player>A|B) # Who won? (Or surrendered?)
                 $ # End of line
@@ -196,3 +196,8 @@ class Game:
                 print(f"Game over! Player {parsed_message['player']} won.")
             case "DISCONNECTION":
                 print("Your opponent has disconnected. So... you win?")
+            case "TIMEOUT":
+                if self.player_letter == parsed_message["player"]:
+                    print("You didn't send your shot on time. You lost.")
+                else:
+                    print("Your opponent didn't send their turn in time. You win!")
