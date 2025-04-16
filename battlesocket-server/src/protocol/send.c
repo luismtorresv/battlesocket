@@ -28,7 +28,6 @@ send_bad_request (Client *client)
 }
 
 // Send a START_GAME message to `client`.
-// - `unix_time` is the game's start time.
 // - `initial_player` is the letter that identifies the player who goes first.
 // - `ship_data` is the text representation of the board.
 void
@@ -49,14 +48,14 @@ send_joined_matchmaking (Client *client)
   send_to_client (client, message);
 }
 
-// Send a `TURN` message to both clients with a timer.
+// Send a `TURN` message to both clients.
 void
 multicast_current_turn (Room *room)
 {
   Game *game = &room->game;
 
   char message[BUFSIZ] = { 0 };
-  build_turn_msg (message, game->current_player, room->turn_max_timeval);
+  build_turn_msg (message, game->current_player);
   multicast (message, room);
 }
 

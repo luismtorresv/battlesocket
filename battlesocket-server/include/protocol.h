@@ -36,7 +36,7 @@ Shot parse_shot (const char *message);
 void build_start_game (char *buffer, Player player, const char *ship_data);
 void build_action_result (char *buffer, const bool ship_was_hit, const int row,
                           const int col, int sunk);
-void build_turn_msg (char *buffer, Player player, long timestamp);
+void build_turn_msg (char *buffer, Player player);
 
 void send_bad_request (Client *client);
 void send_start_game (Client *client, Player player, const char *ship_data);

@@ -53,7 +53,6 @@ class Game:
         self.has_ended = False
         self.current_player = None
         self.player_letter = None
-        self.turn_time = None
 
     def place_ships(self, board):
         battleships_str = board.split(";")  # Stores all the battleships
@@ -129,10 +128,8 @@ class Game:
         return new_set
 
     def set_current_turn(self, message):
-        # TODO: timeout. The turn sends the time.
-        _, player_letter, time = message.split(" ")
+        _, player_letter = message.split(" ")
         self.current_player = player_letter
-        self.turn_time = time
 
     def fire_shot(self, client):
         # The expected input is a letter from A-J concatenated with a number from 1-10.

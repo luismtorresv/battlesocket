@@ -28,7 +28,7 @@ build_action_result (char *buffer, const bool ship_was_hit, const int row,
 }
 
 void
-build_turn_msg (char *buffer, Player player, long timestamp)
+build_turn_msg (char *buffer, Player player)
 {
-  sprintf (buffer, "TURN %c %ld" TERMINATOR, player, timestamp);
+  sprintf (buffer, "TURN %c" TERMINATOR, player);
 }
