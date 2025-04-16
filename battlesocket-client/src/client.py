@@ -46,7 +46,7 @@ class Client:
                 messages = buffer.split(constants.TERMINATOR)
                 queue.extend(messages)
                 while queue:
-                    current_message = queue.pop()
+                    current_message = queue.pop(0)  # First element. It's FIFO.
                     if current_message != "":
                         self.read_message(current_message)
                         if self.game and self.game.has_ended:
