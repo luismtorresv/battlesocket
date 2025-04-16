@@ -1,28 +1,29 @@
-# Battlesocket
+<h1>Battlesocket</h1>
+<!-- As HTML tag to prevent it from being included in header numbering. -->
 
 An online multiplayer implementation of the popular Hasbro strategy game. We are
 meant to design and implement an application-layer protocol as well as get
 ourselves accustomed to the Unix sockets interface.
 
-## Architecture
+## 1. Architecture
 
 > [!WARNING]
 >
 > Pending.
 
-### Sequence diagram
+### 1.1. Sequence diagram
 
 > [!WARNING]
 >
 > Pending.
 
-### Class diagram
+### 1.2. Class diagram
 
 > [!WARNING]
 >
 > Pending.
 
-## Protocol
+## 2. Protocol
 
 > [!WARNING]
 >
@@ -37,7 +38,7 @@ between a game server and its clients.
 This section defines the semantics of BSP
 messages, as well as the procedures regarding them.
 
-### Vocabulary
+### 2.1. Vocabulary
 
 Following the convention suggested in the instructions handout, the BSP messages
 follow the structure:
@@ -59,9 +60,9 @@ We define some common symbols that are used in the following sections:
     row = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J"
     col = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10"
 
-#### Shared
+#### 2.1.1. Shared
 
-#### `BAD_REQUEST`
+#### 2.1.2. `BAD_REQUEST`
 
 Any malformed request (that is, one that is not a valid message of BSP), is
 replied to with a `BAD_REQUEST` message.
@@ -69,15 +70,15 @@ replied to with a `BAD_REQUEST` message.
     bad_request = "BAD_REQUEST"
 
 
-#### Server
+#### 2.1.3. Server
 
-##### `JOINED_MATCHMAKING`
+##### 2.1.3.1. `JOINED_MATCHMAKING`
 
 When a client joins a game server, we send the following message:
 
     joined_matchmaking = "JOINED_MATCHMAKING"
 
-##### `START_GAME`
+##### 2.1.3.2. `START_GAME`
 
 When a game room has been filled, i.e., there are two clients connected, the
 server sends a notification to both of them, specifying their letters
@@ -89,7 +90,7 @@ and each player's board:
 >
 > This section is incomplete.
 
-##### `END_GAME`
+##### 2.1.3.3. `END_GAME`
 
 When a game ends the server notifies each client of the reason for ending
 the game. There are three reasons to end a game:
@@ -105,30 +106,30 @@ Thus we have these possible messages:
     end_game = "END_GAME" cause player_letter
     cause    = "WINNER" | "SURRENDER" | "DISCONNECTION"
 
-##### `HIT`
+##### 2.1.3.4. `HIT`
 
 When a shot sent by the client results in a hit, the server sends this message
 to notify each client of a board update:
 
     hit = "HIT" coordinate | "HIT" coordinate "SUNK"
 
-##### `MISS`
+##### 2.1.3.5. `MISS`
 
 Similarly, when a shot sent by the client does _not_ result in a hit, the server
 sends this message to notify each client of a board update:
 
     miss = "MISS" coordinate
 
-##### `TURN`
+##### 2.1.3.6. `TURN`
 
 When a player shot sent by a client is processed, it tells both players who
 goes next through the following message:
 
     turn = "TURN" player_letter "unix_time"
 
-#### Client
+#### 2.1.4. Client
 
-##### `JOIN`
+##### 2.1.4.1. `JOIN`
 
 > [!WARNING]
 >
@@ -139,29 +140,29 @@ verify that it's a BSP client and prevent unwanted connections:
 
     join = "JOIN" nickname
 
-##### `SHOT`
+##### 2.1.4.2. `SHOT`
 
 When a player inputs a valid coordinate, the client sends a shot message
 with its corresponding values.
 
     shot = "SHOT" coordinate
 
-##### `SURRENDER`
+##### 2.1.4.3. `SURRENDER`
 
 When a player gives up, the client sends the server a notification with the
 following message:
 
     surrender = "SURRENDER"
 
-## Project structure
+## 3. Project structure
 
 > [!WARNING]
 >
 > Pending.
 
-## Compilation
+## 4. Compilation
 
-### Server
+### 4.1. Server
 
 No third-party dependencies.
 
@@ -169,7 +170,7 @@ We are using GNU's `gcc` compiler (specifically, version 11.4.0 on Ubuntu 22.04)
 
 Compile with `make` or compile _and run_ with `make run`.
 
-### Client
+### 4.2. Client
 
 Written in Python 3 with no third-party dependencies.
 
@@ -184,17 +185,17 @@ python src/main.py [server_ip] [server_port]
 ```
 
 
-## Authors
+## 5. Authors
 
 > [!WARNING]
 >
 > Pending.
 
-## References
+## 6. References
 
 
 
-## License
+## 7. License
 
 > [!WARNING]
 >
