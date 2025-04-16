@@ -2,9 +2,8 @@ import logging
 import socket
 import sys
 
-import constants
 from game import Game
-from protocol import ProtocolMessages, Send
+from protocol import Protocol, ProtocolMessages, Send
 
 
 class Client:
@@ -43,7 +42,7 @@ class Client:
                     logging.error("error: server has disconnected.")
                     return
 
-                messages = buffer.split(constants.TERMINATOR)
+                messages = Protocol.get_messages(buffer)
                 queue.extend(messages)
                 while queue:
                     current_message = queue.pop(0)  # First element. It's FIFO.

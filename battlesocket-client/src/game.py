@@ -3,7 +3,6 @@ import re
 import sys
 import textwrap
 
-import constants
 from inputimeout import SocketReadAvailable, TimeoutOcurred, inputimeout
 from protocol import Send
 
@@ -46,10 +45,12 @@ class Board:
 
 
 class Game:
+    BOARD_SIZE = 10
+
     def __init__(self):
-        self.player_board = Board(constants.BOARD_SIZE)
+        self.player_board = Board(Game.BOARD_SIZE)
         self.remaining_ships = None
-        self.opposite_player_board = Board(constants.BOARD_SIZE)
+        self.opposite_player_board = Board(Game.BOARD_SIZE)
         self.has_ended = False
         self.current_player = None
         self.player_letter = None
@@ -121,10 +122,12 @@ class Game:
         new_set = []
         for coord in set_of_coordinates.split(" "):
             letter, number = coord[0], coord[1:]
-            letter = constants.VOCAB[letter]
 
-            # Substract 1 from each coordinate so it complies with python logic.
-            new_set.append((letter - 1, int(number) - 1))
+            # Convert to indices.
+            letter = ord(letter) - ord("A")
+            number = int(number) - 1
+
+            new_set.append((letter, number))
         return new_set
 
     def set_current_turn(self, message):

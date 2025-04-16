@@ -2,8 +2,6 @@ import logging
 import sys
 from enum import Enum
 
-from constants import TERMINATOR
-
 
 class ProtocolMessages(Enum):
     MSG_START_GAME = 1
@@ -16,22 +14,28 @@ class ProtocolMessages(Enum):
 
 
 class Protocol:
+    MESSAGE_TERMINATOR = "\n"
+
+    @classmethod
+    def get_messages(cls, buffer):
+        return buffer.split(Protocol.MESSAGE_TERMINATOR)
+
     @classmethod
     def build_join_msg(cls):
-        return f"JOIN{TERMINATOR}"
+        return f"JOIN{Protocol.MESSAGE_TERMINATOR}"
 
     # Dollar signs are used to indicate the end of the message
     @classmethod
     def build_shoot_msg(cls, coordinate):
-        return f"SHOT {coordinate[0]}{coordinate[1:]}{TERMINATOR}"
+        return f"SHOT {coordinate[0]}{coordinate[1:]}{Protocol.MESSAGE_TERMINATOR}"
 
     @classmethod
     def build_input_err_msg(cls):
-        return f"BAD_REQUEST INPUT_ERROR{TERMINATOR}"
+        return f"BAD_REQUEST INPUT_ERROR{Protocol.MESSAGE_TERMINATOR}"
 
     @classmethod
     def build_surrender_msg(cls):
-        return f"SURRENDER{TERMINATOR}"
+        return f"SURRENDER{Protocol.MESSAGE_TERMINATOR}"
 
 
 class Send:
