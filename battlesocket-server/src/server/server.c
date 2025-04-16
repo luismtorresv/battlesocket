@@ -97,7 +97,9 @@ run_server (const char *log_filename)
   int clients_in_waitlist = 0;
   Client client_a, client_b;
 
-  while ((client_socket = accept (server.fd, (struct sockaddr *)&client_addr,
+  while (
+      -1
+      != (client_socket = accept (server.fd, (struct sockaddr *)&client_addr,
                                   &client_addr_len)))
     {
       log_event (LOG_INFO, "New client connected with fd %d.", client_socket);
