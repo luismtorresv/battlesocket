@@ -55,6 +55,10 @@ class Client:
             print("You gave up... Your opponent wins...")
             Send.send_surrender_msg(self)
             return
+        except ConnectionError:
+            logging.error("Server disconnected.")
+            print("It seems that the server has disconnected. Exiting...")
+            sys.exit(1)
 
     def cleanup(self):
         # We use `close` instead of `shutdown` because:
