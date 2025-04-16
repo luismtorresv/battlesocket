@@ -182,8 +182,10 @@ Tested with Python 3.11.1 on Ubuntu 22.04.
 # Change your working directory to `battlesocket-client`
 cd battlesocket-client
 
-# Start Python interpreter. Must pass IP and port of host.
-python src/main.py [server_ip] [server_port]
+# Start Python interpreter on main module.
+# *Must* pass IP and port of host.
+# (Log path is optional, as it has a default value.)
+python src/main.py [server_ip] [server_port] -l [log_path]
 ```
 
 
