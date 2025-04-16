@@ -180,10 +180,9 @@ handle_game (void *arg)
                   pthread_mutex_unlock (mutex);
                   return NULL;
                 }
-              else if (bytes_read <= 1)
+              else if (bytes_read <= -1)
                 {
                   log_event (LOG_ERROR, "Failed to recv data.");
-                  return NULL;
                 }
             }
           else
