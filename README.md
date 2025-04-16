@@ -104,7 +104,7 @@ the game. There are three reasons to end a game:
 Thus we have these possible messages:
 
     end_game = "END_GAME" cause player_letter
-    cause    = "WINNER" | "SURRENDER" | "DISCONNECTION"
+    cause    = "WINNER" | "SURRENDER" | "DISCONNECTION" | "TIMEOUT"
 
 ##### 2.1.3.4. `HIT`
 

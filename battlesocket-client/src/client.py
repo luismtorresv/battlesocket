@@ -95,7 +95,9 @@ class Client:
                 self.game.set_current_turn(message)
                 self.game.print_boards()
                 if self.game.player_letter != self.game.current_player:
-                    print("It's the other player's turn.")
+                    print(
+                        "It's the other player's turn. You have 30 seconds to place your shot!"
+                    )
                     return
                 else:
                     print("It's your turn!")

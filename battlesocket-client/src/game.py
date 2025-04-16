@@ -1,6 +1,7 @@
 import logging
 import re
 import textwrap
+import sys
 
 import constants
 from inputimeout import SocketReadAvailable, TimeoutOcurred, inputimeout
