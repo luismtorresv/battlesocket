@@ -95,12 +95,10 @@ class Client:
                 self.game.set_current_turn(message)
                 self.game.print_boards()
                 if self.game.player_letter != self.game.current_player:
-                    print(
-                        "It's the other player's turn. You have 30 seconds to place your shot!"
-                    )
+                    print("It's the other player's turn.")
                     return
                 else:
-                    print("It's your turn!")
+                    print("It's your turn! You have 30 seconds to place your shot!")
                 self.game.fire_shot(self)
             case ProtocolMessages.MSG_BAD_REQUEST:
                 # Ignore bad requests. Just log them.
