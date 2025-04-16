@@ -10,7 +10,6 @@ logging.basicConfig(
     filemode="a",
     level=logging.DEBUG,
     format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %I:%M:%S",
 )
 
 
