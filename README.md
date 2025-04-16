@@ -93,13 +93,15 @@ and each player's board:
 ##### 2.1.3.3. `END_GAME`
 
 When a game ends the server notifies each client of the reason for ending
-the game. There are three reasons to end a game:
+the game. These are the possible reasons to end a game:
 
 1. a player won the game
 
 2. a player disconnected from the server
 
 3. a player sent a surrender message to the server
+
+4. a player didn't send a valid action message on time and thus timed out
 
 Thus we have these possible messages:
 
