@@ -127,7 +127,7 @@ sends this message to notify each client of a board update:
 When a player shot sent by a client is processed, it tells both players who
 goes next through the following message:
 
-    turn = "TURN" player_letter "unix_time"
+    turn = "TURN" player_letter unix_time
 
 #### 2.1.4. Client
 
