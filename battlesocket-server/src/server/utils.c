@@ -88,7 +88,7 @@ handshake (int client_fd)
     return false; // Didn't get handshake.
 
   const char *expected_request = "JOIN" TERMINATOR;
-  if (strncmp (recv_buffer, expected_request, sizeof (*expected_request)) == 0)
+  if (strncmp (recv_buffer, expected_request, strlen (expected_request)) == 0)
     return true;
   return false; // Not the message we expected.
 }
