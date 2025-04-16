@@ -80,9 +80,10 @@ bool
 handshake (int client_fd)
 {
   char recv_buffer[BUFSIZ] = { 0 };
-  const int timeout = 5; // In seconds.
+  const int timeout_secs = 2;
 
-  int n = recvtimeout (client_fd, recv_buffer, sizeof (recv_buffer), timeout);
+  int n = recvtimeout (client_fd, recv_buffer, sizeof (recv_buffer),
+                       timeout_secs);
   if (n < 0)
     return false; // Didn't get handshake.
 
