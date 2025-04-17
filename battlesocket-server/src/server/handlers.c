@@ -144,7 +144,7 @@ handle_game (void *arg)
 
       if (num_events == 0)
         {
-          log_event (LOG_DEBUG,
+          log_event (LOG_INFO,
                      "Room with id %d : Server didn't get action message"
                      " from player %c"
                      " in %d seconds.",
