@@ -23,7 +23,7 @@ build_action_result (char *buffer, const bool ship_was_hit, const int row,
   int row_as_char = row + 'A';
   int col_as_char = col + 1;
   const char *result = ship_was_hit ? "HIT" : "MISS";
-  char *format = sunk ? "%s %c%d SUNK" TERMINATOR : "%s %c%d" TERMINATOR;
+  char *format = sunk ? ("%s %c%d SUNK" TERMINATOR) : ("%s %c%d" TERMINATOR);
   sprintf (buffer, format, result, row_as_char, col_as_char);
 }
 

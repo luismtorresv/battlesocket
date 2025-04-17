@@ -8,7 +8,19 @@ void
 send_to_client (Client *client, const char *message)
 {
   send (client->sockfd, message, strlen (message), 0);
-  log_event (LOG_INFO, message);
+
+  // Log action, but create a copy first.
+  char message_copy[4 * BUFSIZ] = { 0 };
+  strncpy (message_copy, message, strlen (message));
+
+  // Remove terminator token.
+  char *terminator_pos = strstr (message_copy, TERMINATOR);
+  if (terminator_pos)
+    {
+      *terminator_pos = '\0';
+    }
+  log_event (LOG_INFO, "Sent \"%s\" to client with IP %s:%ld.", message_copy,
+             inet_ntoa (client->addr.sin_addr), client->addr.sin_port);
 }
 
 // Sends a message to both clients of a room.

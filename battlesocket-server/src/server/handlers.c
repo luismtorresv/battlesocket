@@ -19,7 +19,8 @@ handle_message (Room *room, Client *client, char *message)
     }
   *terminator_pos = '\0';
 
-  log_event (LOG_DEBUG, "Player message received: \"%s\"", message);
+  log_event (LOG_DEBUG, "Received \"%s\" from client with IP %s:%ld.", message,
+             inet_ntoa (client->addr.sin_addr), client->addr.sin_port);
 
   Game *game = &room->game;
   pthread_mutex_t *mutex = &room->mutex;
@@ -47,9 +48,6 @@ handle_message (Room *room, Client *client, char *message)
 
       if (client->player != room->game.current_player)
         return;
-
-      log_event (LOG_INFO, "Processing shot of client with IP %s:%ld.",
-                 inet_ntoa (client->addr.sin_addr), client->addr.sin_port);
 
       // The shot happens in the board of the opposing player
       bool was_hit = was_ship_hit (opposing_board, shot.row, shot.col);
