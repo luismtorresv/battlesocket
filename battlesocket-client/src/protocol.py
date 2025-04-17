@@ -24,7 +24,6 @@ class Protocol:
     def build_join_msg(cls):
         return f"JOIN{Protocol.MESSAGE_TERMINATOR}"
 
-    # Dollar signs are used to indicate the end of the message
     @classmethod
     def build_shoot_msg(cls, coordinate):
         return f"SHOT {coordinate[0]}{coordinate[1:]}{Protocol.MESSAGE_TERMINATOR}"
