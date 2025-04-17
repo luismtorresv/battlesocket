@@ -77,14 +77,9 @@ handle_message (Room *room, Client *client, char *message)
           room_change_turn (room);
         }
       pthread_mutex_unlock (mutex);
-
-      log_event (LOG_INFO, "Action message sent");
     }
   else if (message_type == MSG_SURRENDER)
     {
-      log_event (LOG_INFO, "Client with IP %s:%ld sent a surrender message.",
-                 inet_ntoa (client->addr.sin_addr), client->addr.sin_port);
-
       game->state = FINISHED;
       multicast_end_game (room, client->player, SURRENDER);
     }
