@@ -75,7 +75,7 @@ listen:
 
 .PHONY: format
 format:
-	clang-format -i src/**/*.c include/*.h
+	clang-format -i `find . -depth  -name '*.c' -o -name '*.h'`
 
 
 .PHONY: clean
