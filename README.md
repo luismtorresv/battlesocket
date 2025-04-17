@@ -156,6 +156,25 @@ following message:
 
     surrender = "SURRENDER"
 
+### 2.2. Case examples
+
+To illustrate how the protocol, we showcase a non-exhausting collection of UML
+sequence diagrams. These include cases for:
+
+1. The "perfect" game, where communication between clients and server occurs
+   without issue.
+
+2. The (mostly) unproblematic game, where a few malformed requests are received,
+  amounting to no more than petty errors which can be handled.
+
+3. The fatal-error game, where it's no longer possible to keep playing and it's
+   terminated by the server.
+
+4. The handshake procedure, which verifies that the client connecting to the
+   server is a BSP client.
+
+<!-- UML sequence diagrams go here -->
+
 ## 3. Project structure
 
 > [!WARNING]
