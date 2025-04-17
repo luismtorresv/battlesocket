@@ -18,11 +18,31 @@
 #include <string.h>
 #include <time.h>
 
+#define COUNT_OF(x) (sizeof (x) / sizeof ((x)[0]))
+
 static FILE *log_file = NULL;
 
 int set_log_file (const char *filename);
-void __log (LogLevel level, const char *fmt, va_list ap);
-void __logv (LogLevel level, const char *fmt, ...);
+static const char *get_level_string (LogLevel level);
+
+static const char *
+get_level_string (LogLevel level)
+{
+  static const char *level_strings[] = {
+    [LOG_DEBUG] = "DEBUG",
+    [LOG_INFO] = "INFO",
+    [LOG_ERROR] = "ERROR",
+    [LOG_FATAL] = "FATAL",
+  };
+
+  if ( // Check bounds…
+      (level < 0 || level >= COUNT_OF (level_strings))
+      // Before dereferencing.
+      || !level_strings[level])
+    exit (EXIT_FAILURE);
+
+  return level_strings[level];
+}
 
 // Sets the `log_file` to write to. Returns 0 if successful and 1 otherwise.
 int
@@ -51,88 +71,51 @@ init_logger (const char *log_filename)
     exit (EXIT_FAILURE);
 }
 
-// Internal use function for printing a known list of variadic arguments.
-// Writes to a standard stream, as well as to a log file (if defined).
-void
-__log (LogLevel level, const char *fmt, va_list ap)
-{
-  va_list save; // Copy to be used in log file.
-  FILE *stream; // We want to print to the terminal.
-
-  va_copy (save, ap);
-  stream = (level == LOG_FATAL) ? stderr : stdout;
-  vfprintf (stream, fmt, ap); // ap gets exhausted here.
-  if (log_file != NULL)
-    {
-      vfprintf (log_file, fmt, save);
-      fflush (log_file);
-    }
-}
-
-// Internal use function that logs a format string with an unknown number of
-// arguments. Meant to be used as the `printf` class of functions. E.g.:
-// __logv(LEVEL_INFO, "Hello, %s! It's %s.", name, week_day);
-void
-__logv (LogLevel level, const char *fmt, ...)
-{
-  va_list ap;
-  va_start (ap, fmt);
-  __log (level, fmt, ap);
-  va_end (ap);
-}
-
 // Log a message with a certain `level`.
 // This variadic function is meant to be used as e.g. `printf`.
 void
 log_event (LogLevel level, const char *fmt, ...)
 {
-  const char *DATE_FORMAT = "%F %T";
-
-  va_list ap;
+  // Get current time.
   time_t now;
-  struct tm datetime;
-  char datestr[BUFSIZ] = { 0 };
-
   if ((now = time (NULL)) == (time_t)(-1))
     {
       fprintf (stderr, "error: failed to get current time.\n");
       exit (EXIT_FAILURE);
     }
+
+  // Convert it to (almost) ISO 8601 date time format.
+  struct tm datetime;
+  char datestr[BUFSIZ / 32] = { 0 };
   if (localtime_r (&now, &datetime) == NULL)
     {
       fprintf (stderr, "error: failed to get local time.\n");
       exit (EXIT_FAILURE);
     }
-  strftime (datestr, sizeof (datestr) - 1, DATE_FORMAT, &datetime);
-  __logv (level, "%s ", datestr);
+  const char *date_format = "%F %T";
+  strftime (datestr, sizeof (datestr) - 1, date_format, &datetime);
 
-  const char *LEVEL_FORMAT = "[%s] ";
-  switch (level)
-    {
-    case LOG_DEBUG:
-      __logv (level, LEVEL_FORMAT, "DEBUG");
-      break;
-    case LOG_INFO:
-      __logv (level, LEVEL_FORMAT, "INFO");
-      break;
-    case LOG_ERROR:
-      __logv (level, LEVEL_FORMAT, "ERROR");
-      break;
-    case LOG_FATAL:
-      __logv (level, LEVEL_FORMAT, "FATAL");
-      break;
-    default:
-      break;
-    }
-
-  // HACK: This specific call already has a variadic list.
-  // If we were to call the other function, it would overwrite the current
-  // list, which would result in garbage output.
+  // Write down passed message (this is a variadic function).
+  char intermediate_message[BUFSIZ] = { 0 };
+  va_list ap;
   va_start (ap, fmt);
-  __log (level, fmt, ap);
+  vsnprintf (intermediate_message, sizeof (intermediate_message), fmt, ap);
   va_end (ap);
 
-  __logv (level, "\n");
+  // Finally put it all together.
+  char final_message[2 * BUFSIZ] = { 0 };
+  snprintf (final_message, sizeof (final_message), "%s - [%s] - %s\n", datestr,
+            get_level_string (level), intermediate_message);
+
+  // Write to the terminal…
+  FILE *stream = (level == LOG_FATAL) ? stderr : stdout;
+  fputs (final_message, stream);
+  // As well as to the log, if it's defined.
+  if (log_file)
+    {
+      fputs (final_message, log_file);
+      fflush (log_file);
+    }
 }
 
 // Close log file (if defined).
