@@ -19,8 +19,11 @@ send_to_client (Client *client, const char *message)
     {
       *terminator_pos = '\0';
     }
-  log_event (LOG_INFO, "Sent \"%s\" to client with IP %s:%ld.", message_copy,
-             inet_ntoa (client->addr.sin_addr), client->addr.sin_port);
+
+  int id = (client->room) ? client->room->id : -1;
+  log_event (
+      LOG_INFO, "Room with id %d : Sent \"%s\" to client with IP %s:%ld.", id,
+      message_copy, inet_ntoa (client->addr.sin_addr), client->addr.sin_port);
 }
 
 // Sends a message to both clients of a room.

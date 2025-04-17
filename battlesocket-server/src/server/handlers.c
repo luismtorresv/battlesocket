@@ -19,8 +19,10 @@ handle_message (Room *room, Client *client, char *message)
     }
   *terminator_pos = '\0';
 
-  log_event (LOG_DEBUG, "Received \"%s\" from client with IP %s:%ld.", message,
-             inet_ntoa (client->addr.sin_addr), client->addr.sin_port);
+  log_event (LOG_INFO,
+             "Room with id %d : Received \"%s\" from client with IP %s:%ld.",
+             room->id, message, inet_ntoa (client->addr.sin_addr),
+             client->addr.sin_port);
 
   Game *game = &room->game;
   pthread_mutex_t *mutex = &room->mutex;
@@ -143,10 +145,10 @@ handle_game (void *arg)
       if (num_events == 0)
         {
           log_event (LOG_DEBUG,
-                     "Server didn't get action message"
+                     "Room with id %d : Server didn't get action message"
                      " from player %c"
                      " in %d seconds.",
-                     room->game.current_player, real_timeout);
+                     room->id, room->game.current_player, real_timeout);
           game->state = FINISHED;
           multicast_end_game (room, room->game.current_player, TIMEOUT);
           continue;
@@ -229,10 +231,14 @@ handle_room (void *arg)
   pthread_mutex_t *mutex = &room->mutex;
 
   pthread_mutex_lock (mutex);
+  client_a.room = room;
   room->client_a = client_a;
   room->client_a.player = PLAYER_A;
+
+  client_b.room = room;
   room->client_b = client_b;
   room->client_b.player = PLAYER_B;
+
   game->state = READY_TO_START;
 
   if (game->state == READY_TO_START)
