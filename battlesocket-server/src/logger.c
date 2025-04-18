@@ -13,6 +13,7 @@
 #include "logger.h"
 
 #include <errno.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -22,7 +23,7 @@
 
 static FILE *log_file = NULL;
 
-int set_log_file (const char *filename);
+bool set_log_file (const char *filename);
 static const char *get_level_string (LogLevel level);
 
 static const char *
@@ -44,31 +45,29 @@ get_level_string (LogLevel level)
   return level_strings[level];
 }
 
-// Sets the `log_file` to write to. Returns 0 if successful and 1 otherwise.
-int
+// Sets the `log_file` to write to.
+bool
 set_log_file (const char *filename)
 {
   if (filename == NULL)
-    return 1;
+    return false;
 
   log_file = fopen (filename, "a");
   if (log_file == NULL)
     {
       fprintf (stderr, "error: failed to open log file \"%s\": %s\n", filename,
                strerror (errno));
-      return 1;
+      return false;
     }
 
-  return 0;
+  return true;
 }
 
 // Initialises a logger.
-// Exits in case of failure.
-void
+bool
 init_logger (const char *log_filename)
 {
-  if (set_log_file (log_filename))
-    exit (EXIT_FAILURE);
+  return set_log_file (log_filename);
 }
 
 // Log a message with a certain `level`.

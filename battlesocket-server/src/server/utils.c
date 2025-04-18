@@ -22,7 +22,7 @@ get_current_time ()
   time_t current_time = time (NULL);
   if (current_time == (time_t)(-1))
     {
-      log_event (LOG_ERROR, "Failed to get current time.");
+      log_event (LOG_FATAL, "Failed to get current time.");
       exit (EXIT_FAILURE);
     }
   return current_time;

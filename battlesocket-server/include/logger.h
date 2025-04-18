@@ -1,7 +1,7 @@
 #ifndef LOGGER_H
 #define LOGGER_H
 
-#include <stdarg.h>
+#include <stdbool.h>
 
 // Log level.
 // Idea and values for this enum come from raylib.
@@ -14,7 +14,7 @@ typedef enum
   LOG_FATAL, // Used to abort program: exit(EXIT_FAILURE)
 } LogLevel;
 
-void init_logger (const char *log_filename);
+bool init_logger (const char *log_filename);
 void close_logger ();
 
 void log_event (LogLevel level, const char *fmt, ...);

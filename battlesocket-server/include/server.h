@@ -12,7 +12,6 @@
 #include <unistd.h>
 
 #define NUMBER_OF_ROOMS 1024
-#define SERVER_PORT 8080
 #define MAX_CLIENTS 2
 
 typedef struct Room Room;
@@ -44,7 +43,7 @@ struct ThreadInfo
   Client client_b;
 };
 
-void run_server (const char *log_filename);
+void run_server (const int port, const char *log_filename);
 
 Board *get_board (Game *game, Player player);
 Board *get_current_board (Game *game);

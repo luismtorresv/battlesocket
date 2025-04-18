@@ -9,33 +9,44 @@ struct ServerInfo
 };
 
 // Local function declarations.
-ServerInfo init_server (Room *rooms, const char *log_filename);
+ServerInfo init_server (Room *rooms, const int port, const char *log_filename);
 void cleanup_server (int server_fd);
 
 // Initialise server with its socket.
 ServerInfo
-init_server (Room *rooms, const char *log_filename)
+init_server (Room *rooms, const int port, const char *log_filename)
 {
   ServerInfo server;
 
-  init_logger (log_filename);
+  if (port < 1 || port > 65535)
+    {
+      log_event (LOG_FATAL, "Not a valid port number: %d.", port);
+      exit (1);
+    }
+
+  if (!init_logger (log_filename))
+    {
+      log_event (LOG_FATAL, "Failed to set up logger with filename %s.",
+                 log_filename);
+      exit (1);
+    }
 
   if ((server.fd = socket (AF_INET, SOCK_STREAM, 0)) == -1)
     {
-      log_event (LOG_ERROR, "Failed to create socket.");
+      log_event (LOG_FATAL, "Failed to create socket.");
       exit (1);
     }
 
   struct sockaddr_in serv_addr = {
     .sin_family = AF_INET,
-    .sin_port = htons (SERVER_PORT),
+    .sin_port = htons (port),
     .sin_addr = { htonl (INADDR_ANY) },
   };
 
   int reuse = 1;
   if (setsockopt (server.fd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof (reuse)))
     {
-      log_event (LOG_ERROR, "Failed to set SO_REUSEADDR.");
+      log_event (LOG_FATAL, "Failed to set SO_REUSEADDR.");
       exit (1);
     }
 
@@ -43,23 +54,23 @@ init_server (Room *rooms, const char *log_filename)
   if (setsockopt (server.fd, SOL_SOCKET, SO_KEEPALIVE, &keepalive,
                   sizeof (reuse)))
     {
-      log_event (LOG_ERROR, "Failed to set SO_KEEPALIVE.");
+      log_event (LOG_FATAL, "Failed to set SO_KEEPALIVE.");
       exit (1);
     }
 
   if (bind (server.fd, (struct sockaddr *)&serv_addr, sizeof (serv_addr)))
     {
-      log_event (LOG_ERROR, "Failed to bind.");
+      log_event (LOG_FATAL, "Failed to bind to port %d.", port);
       exit (1);
     }
 
   if (listen (server.fd, MAX_CLIENTS))
     {
-      log_event (LOG_ERROR, "Failed to listen.");
+      log_event (LOG_FATAL, "Failed to listen at port %d.", port);
       exit (1);
     }
 
-  log_event (LOG_INFO, "Server listening with file descriptor %d.", server.fd);
+  log_event (LOG_INFO, "Server listening at port %d.", port);
 
   if (!rooms)
     {
@@ -84,10 +95,10 @@ init_server (Room *rooms, const char *log_filename)
 
 // Accept incoming client connections and dispatch them.
 void
-run_server (const char *log_filename)
+run_server (const int port, const char *log_filename)
 {
   Room rooms[NUMBER_OF_ROOMS];
-  ServerInfo server = init_server (rooms, log_filename);
+  ServerInfo server = init_server (rooms, port, log_filename);
 
   int client_socket;
   struct sockaddr_in client_addr;
