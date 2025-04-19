@@ -504,10 +504,27 @@ python src/main.py [server_ip] [server_port] -l [log_path]
 
 ## 4. Conclusions
 
-> [!WARNING]
->
-> This section has not been started.
+We designed an application-layer network communication protocol that works well
+to handle a Battleship game. We tried to define it once and for all from the
+start, but it took a lot of iterations and nitpicking on details to finally
+settle on its design.
 
+During its development, we learned how to use the basic system calls provided by
+the Unix `sockets` API. Besides knowing how to interact with this interface, we
+had to dig a bit more into the way it's implemented to understand its
+limitations and work around them one way or another.
+
+As network applications are typically concurrent, we also learned —despite none
+of us having taken a course in operating systems— about threads and,
+consequently, about the problem of synchronization which is usually solved
+through the use of mutexes or "locks". Trying to understand how mutexes work led
+us to learn about atomic operations in computer processors.
+
+In spite of strong suggestion to the contrary, we decided to create a new thread
+each time a game started instead of keeping a thread pool. We saw some simple
+thread pool implementations but noticed how their higher complexity can carry
+along additional problems. These were not worth trying to solve as we had no
+real need to handle time-sensitive communications.
 
 ## 5. Authors
 
