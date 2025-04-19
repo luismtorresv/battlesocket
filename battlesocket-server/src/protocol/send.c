@@ -88,7 +88,7 @@ multicast_end_game (Room *room, Player player, EndGameReason reason)
   if (
       // Bounds check before dereferencing.
       (reason < 0 || reason >= COUNT_OF (reason_strings))
-      // Check whether it's a null pointer (i.e. is string above unitialised?)
+      // Check whether it's a null pointer (i.e. is string above uninitialised?)
       || !reason_strings[reason])
     exit (EXIT_FAILURE);
 
