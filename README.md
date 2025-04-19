@@ -465,6 +465,4 @@ python src/main.py [server_ip] [server_port] -l [log_path]
 
 ## 7. License
 
-> [!WARNING]
->
-> Pending.
+Copyright 2025 The Authors
