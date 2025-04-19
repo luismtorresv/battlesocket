@@ -55,40 +55,28 @@ get_ship (Board *board, int row, int col)
 void
 get_ship_data (Board *board, char *buffer, size_t buffer_size)
 {
-  char temp[BUFSIZ] = "";
-  int current_pos = 0;
+  char temp[BUFSIZ] = { 0 };
 
   for (int i = 0; i < board->ship_count; i++)
     {
-      Ship *s = &board->ships[i];
+      Ship *ship = &board->ships[i];
 
-      char current_ship[32];
-      snprintf (current_ship, sizeof (current_ship), "%s", s->name);
-      char coords[128] = "";
-      for (int j = 0; j < s->length; j++)
+      char coords[128] = { 0 };
+      for (int j = 0; j < ship->length; j++)
         {
-          int r = s->start_row + (s->orientation == 1 ? j : 0);
-          int c = s->start_col + (s->orientation == 0 ? j : 0);
+          int row = ship->start_row + (ship->orientation == 1 ? j : 0);
+          int col = ship->start_col + (ship->orientation == 0 ? j : 0);
           char cell[16];
-          snprintf (cell, sizeof (cell), "%c%d", 'A' + r, c + 1);
-
-          if (j == 0)
-            {
-              snprintf (coords, sizeof (coords), "%s", cell);
-            }
-          else
-            {
-              snprintf (coords + strlen (coords),
-                        sizeof (coords) - strlen (coords), " %s", cell);
-            }
+          snprintf (cell, sizeof (cell),
+                    (j != ship->length - 1) ? "%c%d " : "%c%d", 'A' + row,
+                    col + 1);
+          strncat (coords, cell, sizeof (coords) - strlen (coords) - 1);
         }
 
-      int needed = snprintf (temp + current_pos, buffer_size - current_pos,
-                             "%s:%s; ", current_ship, coords);
-
-      if (needed < 0 || ((size_t)current_pos + (size_t)needed) >= buffer_size)
-        break;
-      current_pos += needed;
+      char name_plus_coords[128 + 32 + 1] = { 0 };
+      snprintf (name_plus_coords, sizeof (name_plus_coords), "%s:%s;",
+                ship->name, coords);
+      strncat (temp, name_plus_coords, sizeof (temp));
     }
 
   strncpy (buffer, temp, buffer_size - 1);
