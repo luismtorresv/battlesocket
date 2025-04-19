@@ -413,7 +413,7 @@ Compile with `make` or compile _and run_ with `make run`.
 
 ### 4.2. Client
 
-Written in Python 3 with no third-party dependencies.
+Written in Python 3 with an embedded third-party.
 
 Tested with Python 3.11.1 on Ubuntu 22.04.
 
