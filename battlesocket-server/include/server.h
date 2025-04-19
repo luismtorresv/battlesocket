@@ -48,8 +48,6 @@ void run_server (const int port, const char *log_filename);
 Board *get_board (Game *game, Player player);
 Board *get_current_board (Game *game);
 Board *get_opposing_board (Game *game);
-int get_ship_index_at (Board *board, int row, int col);
-void get_ship_data (Board *board, char *buffer, size_t buffer_size);
 
 bool is_room_available (Room *room);
 bool should_room_finish (Room *room);

@@ -27,12 +27,12 @@ was_ship_hit (Board *board, int row, int col)
 }
 
 // Returns 1 if all the cells of a ship have been hit and 0 otherwise.
-int
-is_ship_sunk (Board *board, int ship_index)
+bool
+is_ship_sunk (Ship *ship)
 {
-  if (ship_index < 0 || ship_index >= board->ship_count)
-    return 0;
-  return (board->ships[ship_index].hits == board->ships[ship_index].length);
+  if (!ship)
+    return false;
+  return ship->hits == ship->length;
 }
 
 // Update board at (row,col) with a hit.
@@ -44,9 +44,9 @@ update_board (Board *board, int row, int col, int hit)
   if (hit)
     {
       board->grid[row][col] = HIT;
-      int ship_index = board->ship_map[row][col];
-      if (ship_index != -1)
-        board->ships[ship_index].hits++;
+      Ship *ship = get_ship (board, row, col);
+      if (ship)
+        ++ship->hits;
     }
   else
     {

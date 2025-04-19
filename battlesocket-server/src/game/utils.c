@@ -40,13 +40,14 @@ get_opposing_board (Game *game)
 }
 
 // Returns the corresponding ship at a certain (row, col).
-// If either of the parameters exceeds the dimensions of the board, returns -1.
-int
-get_ship_index_at (Board *board, int row, int col)
+// Returns NULL if it's out of board bounds.
+Ship *
+get_ship (Board *board, int row, int col)
 {
   if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE)
-    return -1;
-  return board->ship_map[row][col];
+    return NULL;
+  int ship_index = board->ship_map[row][col];
+  return &board->ships[ship_index];
 }
 
 // Returns an ASCII text representation of the board's ships in the format:

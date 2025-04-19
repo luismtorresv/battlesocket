@@ -73,10 +73,10 @@ void place_ships (Board *board);
 
 bool is_valid_shot (int row, int col);
 bool was_ship_hit (Board *board, int row, int col);
-int is_ship_sunk (Board *board, int ship_index);
+bool is_ship_sunk (Ship *ship);
 void update_board (Board *board, int row, int col, int hit);
 int is_game_over (Board *board);
 
-int get_ship_index_at (Board *board, int row, int col);
+Ship *get_ship (Board *board, int row, int col);
 void get_ship_data (Board *board, char *buffer, size_t buffer_size);
 #endif

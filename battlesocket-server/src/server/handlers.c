@@ -60,10 +60,9 @@ handle_message (Room *room, Client *client, char *message)
       bool sunk = false;
       if (was_hit)
         {
-          int ship_index
-              = get_ship_index_at (opposing_board, shot.row, shot.col);
-          if (ship_index != -1)
-            sunk = is_ship_sunk (opposing_board, ship_index);
+          Ship *ship = get_ship (opposing_board, shot.row, shot.col);
+          if (ship)
+            sunk = is_ship_sunk (ship);
         }
 
       char action_msg[BUFSIZ] = { 0 };
