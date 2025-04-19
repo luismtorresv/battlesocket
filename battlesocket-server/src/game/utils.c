@@ -72,7 +72,6 @@ get_ship_data (Board *board, char *buffer, size_t buffer_size)
           char cell[16];
           snprintf (cell, sizeof (cell), "%c%d", 'A' + r, c + 1);
 
-          // Using snprintf.
           if (j == 0)
             {
               snprintf (coords, sizeof (coords), "%s", cell);
@@ -83,7 +82,7 @@ get_ship_data (Board *board, char *buffer, size_t buffer_size)
                         sizeof (coords) - strlen (coords), " %s", cell);
             }
         }
-      // Using snprintf.
+
       int needed = snprintf (temp + current_pos, buffer_size - current_pos,
                              "%s:%s; ", current_ship, coords);
 
