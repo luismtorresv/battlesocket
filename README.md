@@ -5,23 +5,39 @@ An online multiplayer implementation of the popular Hasbro strategy game. We are
 meant to design and implement an application-layer protocol as well as get
 ourselves accustomed to the Unix sockets interface.
 
-## 1. Architecture
 
-> [!WARNING]
->
-> Pending.
+## 1. Features
 
-### 1.1. Sequence diagram
+What's a protocol useful for if there are no programs that implement it?
 
-> [!WARNING]
->
-> Pending.
+### 1.1. Server
 
-### 1.2. Class diagram
+We wrote a concurrent multi-threaded server in C, using the GNU C library for
+common tasks (input/output, string manipulation, etc.) as well as creation and
+handling of POSIX threads and input/output multiplexing with `poll()`.
 
-> [!WARNING]
->
-> Pending.
+The server accepts incoming connections (after a handshake packet is sent).
+It handles matchmaking in a primitive way: using a two-spots FIFO "queue".
+
+After a match starts, a thread is created to handle the game:
+
+- to keep and update its state (the boards of each player, whose turn is it)
+
+- after action messages sent by the players (which are validated by the server
+  and logged)
+
+- whose effects are notified to both players (whether it was hit or miss,
+  another player disconnected or surrendered, a change of turn, etc.) and logged
+
+- and, when it occurs, tell players who won the match.
+
+In between the match, the server keeps a 30 seconds timer. If the player who has
+to shoot doesn't send his shot, it timeouts and the game ends (we preferred this
+over continuously switching turns if both players are idle).
+
+
+### 1.2. Client
+
 
 ## 2. Protocol
 
@@ -439,14 +455,20 @@ cd battlesocket-client
 python src/main.py [server_ip] [server_port] -l [log_path]
 ```
 
+## 5. Conclusions
 
-## 5. Authors
+> [!WARNING]
+>
+> This section has not been started.
+
+
+## 6. Authors
 
 Jerónimo Acosta Acevedo,
 Juan José Restrepo Higuita,
 and Luis Miguel Torres Villegas.
 
-## 6. References
+## 7. References
 
 1. Hall, Brian. _Beej’s Guide to Network Programming: Using Internet Sockets_.
    2025, https://beej.us/guide/bgnet/.
@@ -475,6 +497,6 @@ and Luis Miguel Torres Villegas.
 
 
 
-## 7. License
+## 8. License
 
 Copyright 2025 The Authors
