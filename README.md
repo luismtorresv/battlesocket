@@ -436,6 +436,31 @@ python src/main.py [server_ip] [server_port] -l [log_path]
 
 ## 6. References
 
+1. Hall, Brian. _Beej’s Guide to Network Programming: Using Internet Sockets_.
+   2025, https://beej.us/guide/bgnet/.
+
+   Explains how to use the system calls provided by the Unix API for `sockets`
+   in a friendly and straightforward way.
+   Section 7.2 _`poll()`—Synchronous I/O Multiplexing_ was particularly useful
+   in implementing the thread function that handled a game.
+
+2. Blelloch, Guy. _Linux Tutorial: POSIX Threads._ 15-492: Parallel Algorithms
+   (Fall 2007),
+   https://www.cs.cmu.edu/afs/cs/academic/class/15492-f07/www/pthreads.html.
+
+   Goes over the basic functions provided by the POXIX thread (`pthread`)
+   libraries.
+   It covers creation, termination, and synchronization using mutexes, among
+   other more advanced subjects.
+
+3. Parmaksız, Orhun. _battleship-rs_. 0.1.1, 14 May 2022,
+   https://github.com/orhun/battleship-rs.
+
+   Server-side Rust implementation of Battleship. That is, it provides both the
+   service _and_ the command-line text interface through a TCP connection (more
+   or less like a mainframe interacting with dumb terminals). We designed the
+   CLI for our implementation somewhat based off this one.
+
 
 
 ## 7. License
