@@ -173,7 +173,227 @@ sequence diagrams. These include cases for:
 4. The handshake procedure, which verifies that the client connecting to the
    server is a BSP client.
 
-<!-- UML sequence diagrams go here -->
+#### 2.2.1. Normal development of game
+
+```mermaid
+sequenceDiagram
+    participant ClientA as Client A
+    participant Server as Server
+    participant ClientB as Client B
+
+    ClientA->>Server: JOIN
+    Server-->>ClientA: JOINED_MATCHMAKING
+
+    ClientB->>Server: JOIN
+    Server-->>ClientB: JOINED_MATCHMAKING
+
+    Server-->>ClientA: START_GAME A <board>
+    Server-->>ClientB: START_GAME B <board>
+
+    Server-->>ClientA: TURN A
+    Server-->>ClientB: TURN A
+
+    ClientA->>Server: SHOT <coordinate>
+
+    Server-->>ClientA: HIT | MISS <coordinate>
+    Server-->>ClientB: HIT | MISS <coordinate>
+
+    Server-->>ClientA: TURN B
+    Server-->>ClientB: TURN B
+
+    Note over ClientA,ClientB: ... more attempts ...
+
+    ClientA->>Server: SHOT <coordinate>
+    Server-->>ClientA: HIT <coordinate> SUNK
+    Server-->>ClientB: HIT <coordinate> SUNK
+
+    Server-->>ClientA: END_GAME WINNER A
+    Server-->>ClientB: END_GAME WINNER A
+```
+
+
+#### 2.2.2. Bad request
+
+```mermaid
+sequenceDiagram
+    participant ClientA as Client A
+    participant Server as Server
+    participant ClientB as Client B
+
+    ClientA->>Server: JOIN
+    Server-->>ClientA: JOINED_MATCHMAKING
+
+    ClientB->>Server: JOIN
+    Server-->>ClientB: JOINED_MATCHMAKING
+
+    Server-->>ClientA: START_GAME A <board>
+    Server-->>ClientB: START_GAME B <board>
+
+    Server-->>ClientA: TURN A
+    Server-->>ClientB: TURN A
+
+rect rgb(255,100,76)
+    ClientA->>Server: SHOT K11
+    Server-->>ClientA: BAD_REQUEST
+end
+
+rect rgb(76, 179, 255)
+    ClientA->>Server: SHOOT J10
+    Server-->>ClientA: BAD_REQUEST
+end
+
+    ClientA->>Server: SHOT J10
+    Server-->>ClientA: HIT | MISS J10
+    Server-->>ClientB: HIT | MISS J10
+
+    Server-->>ClientA: TURN B
+    Server-->>ClientB: TURN B
+
+    Note over ClientA,ClientB: ... more attempts ...
+
+    ClientA->>Server: SHOT <coordinate>
+    Server-->>ClientA: HIT <coordinate> SUNK
+    Server-->>ClientB: HIT <coordinate> SUNK
+
+    Server-->>ClientA: END_GAME WINNER A
+    Server-->>ClientB: END_GAME WINNER A
+```
+
+
+#### 2.2.3. Disconnection
+
+```mermaid
+sequenceDiagram
+    participant ClientA as Client A
+    participant Server as Server
+    participant ClientB as Client B
+
+    ClientA->>Server: JOIN
+    Server-->>ClientA: JOINED_MATCHMAKING
+
+    ClientB->>Server: JOIN
+    Server-->>ClientB: JOINED_MATCHMAKING
+
+    Server-->>ClientA: START_GAME A <board>
+    Server-->>ClientB: START_GAME B <board>
+
+    Server-->>ClientA: TURN A
+    Server-->>ClientB: TURN A
+
+    ClientA->>Server: SHOT <coordinate>
+    Server-->>ClientA: HIT | MISS <coordinate>
+    Server-->>ClientB: HIT | MISS <coordinate>
+
+    Server-->>ClientA: TURN B
+    Server-->>ClientB: TURN B
+
+    break Client B disconnected
+      Server-->>ClientB: "END_GAME DISCONNECTION B"
+      Server-->>ClientA: "END_GAME DISCONNECTION B"
+    end
+```
+
+
+#### 2.2.4. Surrender
+
+```mermaid
+sequenceDiagram
+    participant ClientA as Client A
+    participant Server as Server
+    participant ClientB as Client B
+
+    ClientA->>Server: JOIN
+    Server-->>ClientA: JOINED_MATCHMAKING
+
+    ClientB->>Server: JOIN
+    Server-->>ClientB: JOINED_MATCHMAKING
+
+    Server-->>ClientA: START_GAME A <board>
+    Server-->>ClientB: START_GAME B <board>
+
+    Server-->>ClientA: TURN A
+    Server-->>ClientB: TURN A
+
+    ClientA->>Server: SHOT <coordinate>
+    Server-->>ClientA: HIT | MISS <coordinate>
+    Server-->>ClientB: HIT | MISS <coordinate>
+
+    Server-->>ClientA: TURN B
+    Server-->>ClientB: TURN B
+
+    ClientB->>Server: SURRENDER
+
+    Server-->>ClientB: "END_GAME SURRENDER B"
+    Server-->>ClientA: "END_GAME SURRENDER B"
+```
+
+
+#### 2.2.5. Timeout
+
+```mermaid
+sequenceDiagram
+    participant ClientA as Client A
+    participant Server as Server
+    participant ClientB as Client B
+
+    ClientA->>Server: JOIN
+    Server-->>ClientA: JOINED_MATCHMAKING
+
+    ClientB->>Server: JOIN
+    Server-->>ClientB: JOINED_MATCHMAKING
+
+    Server-->>ClientA: START_GAME A <board>
+    Server-->>ClientB: START_GAME B <board>
+
+    Server-->>ClientA: TURN A
+    Server-->>ClientB: TURN A
+
+    ClientA->>Server: SHOT <coordinate>
+    Server-->>ClientA: HIT | MISS <coordinate>
+    Server-->>ClientB: HIT | MISS <coordinate>
+
+    Server-->>ClientA: TURN B
+    Server-->>ClientB: TURN B
+
+    Note over ClientB: 30 seconds timeout (no action)
+
+    break End of the game by TIMEOUT
+      Server-->>ClientB: "END_GAME TIMEOUT B"
+      Server-->>ClientA: "END_GAME TIMEOUT B"
+    end
+```
+
+
+#### 2.2.6. No handshake
+
+```mermaid
+sequenceDiagram
+    participant Client as Client
+    participant Server as Server
+
+    Note over Server,Client: Client connected
+    Note over Server,Client: awaiting JOIN (5 seconds timeout)
+
+    break Handshake not received
+        Server->>Server: Log handshake not received
+    end
+```
+
+
+#### 2.2.7. Wrong handshake
+
+```mermaid
+sequenceDiagram
+    participant Client as Client
+    participant Server as Server
+
+    Client->>Server: PLAY
+
+    break Handshake not received
+        Server->>Server: Log handshake not received
+    end
+```
+
 
 ## 3. Project structure
 
