@@ -205,7 +205,11 @@ class Game:
                 else:
                     print("The opponent has surrendered the match. You won!")
             case "WINNER":
-                print(f"Game over! Player {parsed_message['player']} won.")
+                print("Game over!", end=" ")
+                if self.player_letter == parsed_message["player"]:
+                    print("You win!")
+                else:
+                    print("You lost...")
             case "DISCONNECTION":
                 print("Your opponent has disconnected. So... you win?")
             case "TIMEOUT":
