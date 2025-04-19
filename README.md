@@ -409,7 +409,19 @@ No third-party dependencies.
 
 We are using GNU's `gcc` compiler (specifically, version 11.4.0 on Ubuntu 22.04).
 
-Compile with `make` or compile _and run_ with `make run`.
+```shell
+# Change working directory.
+cd battlesocket-server
+
+# Compile.
+make -j 4
+
+# Run it with either
+make run
+# or, to pass *optional* flags, as
+./battlesocket-server -p[port] -l[log_file]
+```
+
 
 ### 4.2. Client
 
