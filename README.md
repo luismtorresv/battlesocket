@@ -1,9 +1,48 @@
+<!-- omit from toc -->
 <h1>Battlesocket</h1>
 <!-- As HTML tag to prevent it from being included in header numbering. -->
 
 An online multiplayer implementation of the popular Hasbro strategy game. We are
 meant to design and implement an application-layer protocol as well as get
 ourselves accustomed to the Unix sockets interface.
+
+<!-- omit from toc -->
+## Contents
+
+- [1. Features](#1-features)
+  - [1.1. Server](#11-server)
+  - [1.2. Client](#12-client)
+- [2. Protocol](#2-protocol)
+  - [2.1. Vocabulary](#21-vocabulary)
+    - [2.1.1. Shared by client and server](#211-shared-by-client-and-server)
+    - [2.1.2. `BAD_REQUEST`](#212-bad_request)
+    - [2.1.3. Server-to-client](#213-server-to-client)
+      - [2.1.3.1. `JOINED_MATCHMAKING`](#2131-joined_matchmaking)
+      - [2.1.3.2. `START_GAME`](#2132-start_game)
+      - [2.1.3.3. `END_GAME`](#2133-end_game)
+      - [2.1.3.4. `HIT`](#2134-hit)
+      - [2.1.3.5. `MISS`](#2135-miss)
+      - [2.1.3.6. `TURN`](#2136-turn)
+    - [2.1.4. Client-to-server](#214-client-to-server)
+      - [2.1.4.1. `JOIN`](#2141-join)
+      - [2.1.4.2. `SHOT`](#2142-shot)
+      - [2.1.4.3. `SURRENDER`](#2143-surrender)
+  - [2.2. Case examples](#22-case-examples)
+    - [2.2.1. Normal development of game](#221-normal-development-of-game)
+    - [2.2.2. Bad request](#222-bad-request)
+    - [2.2.3. Disconnection](#223-disconnection)
+    - [2.2.4. Surrender](#224-surrender)
+    - [2.2.5. Timeout](#225-timeout)
+    - [2.2.6. No handshake](#226-no-handshake)
+    - [2.2.7. Wrong handshake](#227-wrong-handshake)
+- [3. Project structure](#3-project-structure)
+- [4. Compilation](#4-compilation)
+  - [4.1. Server](#41-server)
+  - [4.2. Client](#42-client)
+- [5. Conclusions](#5-conclusions)
+- [6. Authors](#6-authors)
+- [7. References](#7-references)
+- [8. License](#8-license)
 
 
 ## 1. Features
