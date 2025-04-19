@@ -60,7 +60,7 @@ We define some common symbols that are used in the following sections:
     row = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J"
     col = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10"
 
-#### 2.1.1. Shared
+#### 2.1.1. Shared by client and server
 
 #### 2.1.2. `BAD_REQUEST`
 
@@ -70,7 +70,7 @@ replied to with a `BAD_REQUEST` message.
     bad_request = "BAD_REQUEST"
 
 
-#### 2.1.3. Server
+#### 2.1.3. Server-to-client
 
 ##### 2.1.3.1. `JOINED_MATCHMAKING`
 
@@ -129,7 +129,7 @@ goes next through the following message:
 
     turn = "TURN" player_letter
 
-#### 2.1.4. Client
+#### 2.1.4. Client-to-server
 
 ##### 2.1.4.1. `JOIN`
 
