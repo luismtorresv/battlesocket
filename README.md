@@ -430,9 +430,9 @@ python src/main.py [server_ip] [server_port] -l [log_path]
 
 ## 5. Authors
 
-> [!WARNING]
->
-> Pending.
+Jerónimo Acosta Acevedo,
+Juan José Restrepo Higuita,
+and Luis Miguel Torres Villegas.
 
 ## 6. References
 
