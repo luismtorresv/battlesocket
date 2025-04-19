@@ -48,15 +48,8 @@ def main():
     )
 
     logging.info("Starting program.")
-    print("Welcome to Battlesocket!")
+    print("Welcome to Battlesocket")
     client = Client(ip, port)
-    try:
-        client.username = input("Username: ")
-        client.email = input("Email: ")
-    except KeyboardInterrupt:
-        print()
-        sys.exit(1)
-
     client.run()
     client.cleanup()
     logging.info("Exiting program.")

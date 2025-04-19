@@ -9,8 +9,6 @@ from protocol import Protocol, ProtocolMessages, Send
 class Client:
     def __init__(self, ip, port):
         self.game = Game()
-        self.username = None
-        self.email = None
         self.sockfd = None
         self.server_addr = (ip, port)
 
