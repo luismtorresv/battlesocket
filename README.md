@@ -71,11 +71,26 @@ After a match starts, a thread is created to handle the game:
 - and, when it occurs, tell players who won the match.
 
 In between the match, the server keeps a 30 seconds timer. If the player who has
-to shoot doesn't send his shot, it timeouts and the game ends (we preferred this
+to shoot doesn't send their shot, it timeouts and the game ends (we preferred this
 over continuously switching turns if both players are idle).
 
 
 ### 1.2. Client
+
+The client's remit is:
+
+- To provide a command-line game interface to the player that tells them about:
+  - Their own board: Where their ships are and whether they have been hit
+  - Their opponent's board: Where they have shot and whether they missed or not
+  - Whose turn is it
+
+- To let the player make their shot, surrender, or find a new game.
+
+- To connect to the server using the BSP protocol through message exchanging
+  (using the Python Library `sockets` module).
+
+- To detect and notify the player if the client disconnected from the server.
+
 
 
 ## 2. Protocol
