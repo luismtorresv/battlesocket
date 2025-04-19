@@ -153,7 +153,7 @@ When a game room has been filled, i.e., there are two clients connected, the
 server sends a notification to both of them, specifying their letters
 and each player's board:
 
-    start_game = "START_GAME" player_letter "{ (ship_type)":""}"
+    start_game = "START_GAME" player_letter "{" (ship_type ":" coordinate+)+ "}"
 
 > [!WARNING]
 >
