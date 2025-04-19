@@ -55,8 +55,7 @@ get_ship (Board *board, int row, int col)
 void
 get_ship_data (Board *board, char *buffer, size_t buffer_size)
 {
-  char temp[BUFSIZ] = { 0 };
-
+  memset (buffer, 0, buffer_size);
   for (int i = 0; i < board->ship_count; i++)
     {
       Ship *ship = &board->ships[i];
@@ -76,9 +75,6 @@ get_ship_data (Board *board, char *buffer, size_t buffer_size)
       char name_plus_coords[128 + 32 + 1] = { 0 };
       snprintf (name_plus_coords, sizeof (name_plus_coords), "%s:%s;",
                 ship->name, coords);
-      strncat (temp, name_plus_coords, sizeof (temp));
+      strncat (buffer, name_plus_coords, buffer_size);
     }
-
-  strncpy (buffer, temp, buffer_size - 1);
-  buffer[buffer_size - 1] = '\0';
 }
