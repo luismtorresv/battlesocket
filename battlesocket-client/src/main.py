@@ -1,6 +1,7 @@
 import argparse
 import logging
 import sys
+import textwrap
 from ipaddress import ip_address
 
 from client import Client
@@ -48,7 +49,23 @@ def main():
     )
 
     logging.info("Starting program.")
-    print("Welcome to Battlesocket")
+    # ASCII art banner from this project:
+    # https://github.com/orhun/battleship-rs/blob/62e1ab688a7cc31034cb53de2bf9f1bc6ea222da/src/lib.rs#L18-L24
+    print(
+        textwrap.indent(
+            textwrap.dedent( # Remove additional spaces from raw string.
+                r"""
+            _    _
+         __|_|__|_|__
+       _|____________|__
+      |o o o o o o o o /
+    ~'`~'`~'`~'`~'`~'`~'`~
+    Welcome to Battleship!
+    """
+            ),
+            " " * 8, # But add them manually here.
+        )
+    )
     client = Client(ip, port)
     client.run()
     client.cleanup()
