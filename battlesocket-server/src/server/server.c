@@ -141,6 +141,19 @@ run_server (const int port, const char *log_filename)
 
       // If we got here, we can start a game.
 
+      // But first, let's check that both clients are still connected.
+      if (-1 == recvtimeout (client_a.sockfd, '\0', 1, 1))
+        {
+          log_event (LOG_INFO,
+                     "Client with IP %s:%ld disconnected before a game was "
+                     "about to start.",
+                     inet_ntoa (client_a.addr.sin_addr),
+                     client_a.addr.sin_port);
+          client_a = client_b; // A always goes first, so let's move B over.
+          --clients_in_waitlist;
+          continue; // Let's keep looking...
+        }
+
       pthread_t thread_id;
       // Set up the argument to the thread.
       ThreadInfo thread_info;
