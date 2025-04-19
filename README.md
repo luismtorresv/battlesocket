@@ -35,14 +35,13 @@ ourselves accustomed to the Unix sockets interface.
     - [2.2.5. Timeout](#225-timeout)
     - [2.2.6. No handshake](#226-no-handshake)
     - [2.2.7. Wrong handshake](#227-wrong-handshake)
-- [3. Project structure](#3-project-structure)
-- [4. Compilation](#4-compilation)
-  - [4.1. Server](#41-server)
-  - [4.2. Client](#42-client)
-- [5. Conclusions](#5-conclusions)
-- [6. Authors](#6-authors)
-- [7. References](#7-references)
-- [8. License](#8-license)
+- [3. Compilation](#3-compilation)
+  - [3.1. Server](#31-server)
+  - [3.2. Client](#32-client)
+- [4. Conclusions](#4-conclusions)
+- [5. Authors](#5-authors)
+- [6. References](#6-references)
+- [7. License](#7-license)
 
 
 ## 1. Features
@@ -465,15 +464,9 @@ sequenceDiagram
 ```
 
 
-## 3. Project structure
+## 3. Compilation
 
-> [!WARNING]
->
-> Pending.
-
-## 4. Compilation
-
-### 4.1. Server
+### 3.1. Server
 
 No third-party dependencies.
 
@@ -493,7 +486,7 @@ make run
 ```
 
 
-### 4.2. Client
+### 3.2. Client
 
 Written in Python 3 with an embedded third-party.
 
@@ -509,20 +502,20 @@ cd battlesocket-client
 python src/main.py [server_ip] [server_port] -l [log_path]
 ```
 
-## 5. Conclusions
+## 4. Conclusions
 
 > [!WARNING]
 >
 > This section has not been started.
 
 
-## 6. Authors
+## 5. Authors
 
 Jerónimo Acosta Acevedo,
 Juan José Restrepo Higuita,
 and Luis Miguel Torres Villegas.
 
-## 7. References
+## 6. References
 
 1. Hall, Brian. _Beej’s Guide to Network Programming: Using Internet Sockets_.
    2025, https://beej.us/guide/bgnet/.
@@ -551,6 +544,6 @@ and Luis Miguel Torres Villegas.
 
 
 
-## 8. License
+## 7. License
 
 Copyright 2025 The Authors
