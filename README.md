@@ -460,7 +460,7 @@ and Luis Miguel Torres Villegas.
    (Fall 2007),
    https://www.cs.cmu.edu/afs/cs/academic/class/15492-f07/www/pthreads.html.
 
-   Goes over the basic functions provided by the POXIX thread (`pthread`)
+   Goes over the basic functions provided by the POSIX thread (`pthread`)
    libraries.
    It covers creation, termination, and synchronization using mutexes, among
    other more advanced subjects.
