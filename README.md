@@ -27,14 +27,19 @@ ourselves accustomed to the Unix sockets interface.
       - [2.1.4.1. `JOIN`](#2141-join)
       - [2.1.4.2. `SHOT`](#2142-shot)
       - [2.1.4.3. `SURRENDER`](#2143-surrender)
-  - [2.2. Case examples](#22-case-examples)
-    - [2.2.1. Normal development of game](#221-normal-development-of-game)
-    - [2.2.2. Bad request](#222-bad-request)
-    - [2.2.3. Disconnection](#223-disconnection)
-    - [2.2.4. Surrender](#224-surrender)
-    - [2.2.5. Timeout](#225-timeout)
-    - [2.2.6. No handshake](#226-no-handshake)
-    - [2.2.7. Wrong handshake](#227-wrong-handshake)
+  - [2.2. Procedure](#22-procedure)
+    - [2.2.1. Connection](#221-connection)
+    - [2.2.2. Gameplay](#222-gameplay)
+    - [2.2.3. End](#223-end)
+    - [2.2.4. Edge cases](#224-edge-cases)
+  - [2.3. Case examples](#23-case-examples)
+    - [2.3.1. Normal development of game](#231-normal-development-of-game)
+    - [2.3.2. Bad request](#232-bad-request)
+    - [2.3.3. Disconnection](#233-disconnection)
+    - [2.3.4. Surrender](#234-surrender)
+    - [2.3.5. Timeout](#235-timeout)
+    - [2.3.6. No handshake](#236-no-handshake)
+    - [2.3.7. Wrong handshake](#237-wrong-handshake)
 - [3. Compilation](#3-compilation)
   - [3.1. Server](#31-server)
   - [3.2. Client](#32-client)
@@ -218,7 +223,66 @@ following message:
 
     surrender = "SURRENDER"
 
-### 2.2. Case examples
+
+### 2.2. Procedure
+
+#### 2.2.1. Connection
+
+1. A BSP client connects to a BSP server over TCP and sends the handshake
+   message (`JOIN`) within the time the server was prepared to wait (usually 2
+   seconds).
+
+      1. If the handshake message times out, the server closes the TCP
+         connection with the client.
+
+      2. After a handshake message is received, the server sends a
+         `JOINED_MATCHMAKING` message to the client, with no need for
+         acknowledgment.
+
+#### 2.2.2. Gameplay
+
+3. When there's enough players to start a game, the server sends a `START_GAME`
+   message to both connected clients with their corresponding letter and game
+   board. Each client must have a unique letter (either `A` or `B`) and they
+   should only receive their game board, not their opponent's.
+
+4. Shortly after this, the server sends a `TURN` message which notifies both
+   clients whose turn it is (either `A` or `B`).
+
+5. The current player must send a `SHOT` message within 30 seconds. Otherwise
+   the server will timeout and the server will notify the current opponent that
+   they have won the match as the current player timed out.
+
+    1. If the `SHOT` message has valid coordinates, the server notifies both
+       clients whether it was a `HIT`, and whether a ship sunk, or `MISS`.
+
+    2. Otherwise, the server sends a `BAD_REQUEST` message to the client. It's
+       not essential that the server disconnects the client if it's incorrectly
+       implemented: it will timeout eventually.
+
+ #### 2.2.3. End
+
+6. After each `HIT` or `MISS`:
+
+   1. If the game end condition has been met, the server will send an `END_GAME`
+      message specifying it ends because of a `WINNER` along with the letter of
+      the player who won.
+
+   3. Otherwise, it will change the turn and notify both players by sending a
+      `TURN` message.
+
+#### 2.2.4. Edge cases
+
+7. If a client disconnection is detected, the server will notify the other
+   player who, presumably, has not disconnected, with an `END_GAME` message that
+   specifies `DISCONNECTION` and the letter of the player who disconnected.
+
+8. Similarly, if a client surrenders mid-game, the server will notify the other
+   player with an `END_GAME` message that specifies `SURRENDER` and the letter
+   of the player who surrendered.
+
+
+### 2.3. Case examples
 
 To illustrate how the protocol, we showcase a non-exhausting collection of UML
 sequence diagrams. These include cases for:
@@ -235,7 +299,7 @@ sequence diagrams. These include cases for:
 4. The handshake procedure, which verifies that the client connecting to the
    server is a BSP client.
 
-#### 2.2.1. Normal development of game
+#### 2.3.1. Normal development of game
 
 ```mermaid
 sequenceDiagram
@@ -274,7 +338,7 @@ sequenceDiagram
 ```
 
 
-#### 2.2.2. Bad request
+#### 2.3.2. Bad request
 
 ```mermaid
 sequenceDiagram
@@ -322,7 +386,7 @@ end
 ```
 
 
-#### 2.2.3. Disconnection
+#### 2.3.3. Disconnection
 
 ```mermaid
 sequenceDiagram
@@ -356,7 +420,7 @@ sequenceDiagram
 ```
 
 
-#### 2.2.4. Surrender
+#### 2.3.4. Surrender
 
 ```mermaid
 sequenceDiagram
@@ -390,7 +454,7 @@ sequenceDiagram
 ```
 
 
-#### 2.2.5. Timeout
+#### 2.3.5. Timeout
 
 ```mermaid
 sequenceDiagram
@@ -426,7 +490,7 @@ sequenceDiagram
 ```
 
 
-#### 2.2.6. No handshake
+#### 2.3.6. No handshake
 
 ```mermaid
 sequenceDiagram
@@ -442,7 +506,7 @@ sequenceDiagram
 ```
 
 
-#### 2.2.7. Wrong handshake
+#### 2.3.7. Wrong handshake
 
 ```mermaid
 sequenceDiagram
