@@ -202,14 +202,10 @@ goes next through the following message:
 
 ##### 2.1.4.1. `JOIN`
 
-> [!WARNING]
->
-> Not fully implemented. Still missing the nickname
-
 A client that wants to connect to a BSP server must send a handshake message to
 verify that it's a BSP client and prevent unwanted connections:
 
-    join = "JOIN" nickname
+    join = "JOIN"
 
 ##### 2.1.4.2. `SHOT`
 
