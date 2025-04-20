@@ -2,9 +2,12 @@
 <h1>Battlesocket</h1>
 <!-- As HTML tag to prevent it from being included in header numbering. -->
 
-An online multiplayer implementation of the popular Hasbro strategy game. We are
-meant to design and implement an application-layer protocol as well as get
-ourselves accustomed to the Unix sockets interface.
+Battlesocket is a client-server architecture implementation of Battleship™, the
+popular Hasbro strategy game, that supports the BattleShip Protocol over TCP
+using the Unix `sockets` application programming interface.
+
+This README covers the features of both server and client, as well as the
+BattleShip Protocol's vocabulary and procedure.
 
 <!-- omit from toc -->
 ## Contents
