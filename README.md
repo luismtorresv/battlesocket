@@ -59,7 +59,7 @@ It handles matchmaking in a primitive way: using a two-spots FIFO "queue".
 
 After a match starts, a thread is created to handle the game:
 
-- to keep and update its state (the boards of each player, whose turn is it)
+- to keep and update its state (the boards of each player, whose turn it is)
 
 - after action messages sent by the players (which are validated by the server
   and logged)
@@ -81,7 +81,7 @@ The client's remit is:
 - To provide a command-line game interface to the player that tells them about:
   - Their own board: Where their ships are and whether they have been hit
   - Their opponent's board: Where they have shot and whether they missed or not
-  - Whose turn is it
+  - Whose turn it is
 
 - To let the player make their shot, surrender, or find a new game.
 
