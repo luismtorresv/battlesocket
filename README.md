@@ -150,14 +150,11 @@ When a client joins a game server, we send the following message:
 ##### 2.1.3.2. `START_GAME`
 
 When a game room has been filled, i.e., there are two clients connected, the
-server sends a notification to both of them, specifying their letters
-and each player's board:
+server notifies both of them that a game will start, along with their respective
+letters (`A` or `B`) and boards:
 
     start_game = "START_GAME" player_letter "{" (ship_type ":" coordinate+)+ "}"
-
-> [!WARNING]
->
-> This section is incomplete.
+    ship_type = "carrier" | "battleship" | "cruiser" | "destroyer" | "submarine"
 
 ##### 2.1.3.3. `END_GAME`
 
