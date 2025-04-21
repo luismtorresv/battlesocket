@@ -397,21 +397,9 @@ sequenceDiagram
     participant Server as Server
     participant ClientB as Client B
 
-    ClientA->>Server: JOIN
-    Server-->>ClientA: JOINED_MATCHMAKING
-
-    ClientB->>Server: JOIN
-    Server-->>ClientB: JOINED_MATCHMAKING
-
-    Server-->>ClientA: START_GAME A <board>
-    Server-->>ClientB: START_GAME B <board>
-
-    Server-->>ClientA: TURN A
-    Server-->>ClientB: TURN A
-
-    ClientA->>Server: SHOT <coordinate>
-    Server-->>ClientA: HIT | MISS <coordinate>
-    Server-->>ClientB: HIT | MISS <coordinate>
+    opt Game setup and early turns
+      Note over ClientA, ClientB: Players have joined and the game has started
+    end
 
     Server-->>ClientA: TURN B
     Server-->>ClientB: TURN B
@@ -431,21 +419,9 @@ sequenceDiagram
     participant Server as Server
     participant ClientB as Client B
 
-    ClientA->>Server: JOIN
-    Server-->>ClientA: JOINED_MATCHMAKING
-
-    ClientB->>Server: JOIN
-    Server-->>ClientB: JOINED_MATCHMAKING
-
-    Server-->>ClientA: START_GAME A <board>
-    Server-->>ClientB: START_GAME B <board>
-
-    Server-->>ClientA: TURN A
-    Server-->>ClientB: TURN A
-
-    ClientA->>Server: SHOT <coordinate>
-    Server-->>ClientA: HIT | MISS <coordinate>
-    Server-->>ClientB: HIT | MISS <coordinate>
+    opt Game setup and early turns
+      Note over ClientA, ClientB: Players have joined and the game has started
+    end
 
     Server-->>ClientA: TURN B
     Server-->>ClientB: TURN B
@@ -465,21 +441,9 @@ sequenceDiagram
     participant Server as Server
     participant ClientB as Client B
 
-    ClientA->>Server: JOIN
-    Server-->>ClientA: JOINED_MATCHMAKING
-
-    ClientB->>Server: JOIN
-    Server-->>ClientB: JOINED_MATCHMAKING
-
-    Server-->>ClientA: START_GAME A <board>
-    Server-->>ClientB: START_GAME B <board>
-
-    Server-->>ClientA: TURN A
-    Server-->>ClientB: TURN A
-
-    ClientA->>Server: SHOT <coordinate>
-    Server-->>ClientA: HIT | MISS <coordinate>
-    Server-->>ClientB: HIT | MISS <coordinate>
+    opt Game setup and early turns
+      Note over ClientA, ClientB: Players have joined and the game has started
+    end
 
     Server-->>ClientA: TURN B
     Server-->>ClientB: TURN B
