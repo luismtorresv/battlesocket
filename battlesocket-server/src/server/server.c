@@ -141,7 +141,7 @@ run_server (const int port, const char *log_filename)
 
       // If we got here, we can start a game.
 
-      // But first, let's check that both clients are still connected.
+      // But first, let's check that the first client is still connected.
       if (-1 == recvtimeout (client_a.sockfd, '\0', 1, 1))
         {
           log_event (LOG_INFO,
