@@ -1,5 +1,5 @@
 <!-- omit from toc -->
-<h1>Battlesocket</h1>
+# battlesocket
 <!-- As HTML tag to prevent it from being included in header numbering. -->
 
 Battlesocket is a client-server architecture implementation of Battleship™, the
