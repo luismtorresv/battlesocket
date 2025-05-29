@@ -102,10 +102,6 @@ The client's remit is:
 
 ## 2. Protocol
 
-> [!WARNING]
->
-> This section is incomplete.
-
 The BattleShip Protocol (BSP) is an application-layer
 network communication protocol for Battleship game.
 BSP relies on TCP to exchange human-readable text messages
