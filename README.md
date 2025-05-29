@@ -15,41 +15,42 @@ BattleShip Protocol's vocabulary and procedure.
 - [1. Features](#1-features)
   - [1.1. Server](#11-server)
   - [1.2. Client](#12-client)
-- [2. Protocol](#2-protocol)
-  - [2.1. Vocabulary](#21-vocabulary)
-    - [2.1.1. Shared by client and server](#211-shared-by-client-and-server)
-    - [2.1.2. `BAD_REQUEST`](#212-bad_request)
-    - [2.1.3. Server-to-client](#213-server-to-client)
-      - [2.1.3.1. `JOINED_MATCHMAKING`](#2131-joined_matchmaking)
-      - [2.1.3.2. `START_GAME`](#2132-start_game)
-      - [2.1.3.3. `END_GAME`](#2133-end_game)
-      - [2.1.3.4. `HIT`](#2134-hit)
-      - [2.1.3.5. `MISS`](#2135-miss)
-      - [2.1.3.6. `TURN`](#2136-turn)
-    - [2.1.4. Client-to-server](#214-client-to-server)
-      - [2.1.4.1. `JOIN`](#2141-join)
-      - [2.1.4.2. `SHOT`](#2142-shot)
-      - [2.1.4.3. `SURRENDER`](#2143-surrender)
-  - [2.2. Procedure](#22-procedure)
-    - [2.2.1. Connection](#221-connection)
-    - [2.2.2. Gameplay](#222-gameplay)
-    - [2.2.3. End](#223-end)
-    - [2.2.4. Edge cases](#224-edge-cases)
-  - [2.3. Case examples](#23-case-examples)
-    - [2.3.1. Normal development of game](#231-normal-development-of-game)
-    - [2.3.2. Bad request](#232-bad-request)
-    - [2.3.3. Disconnection](#233-disconnection)
-    - [2.3.4. Surrender](#234-surrender)
-    - [2.3.5. Timeout](#235-timeout)
-    - [2.3.6. No handshake](#236-no-handshake)
-    - [2.3.7. Wrong handshake](#237-wrong-handshake)
-- [3. Compilation](#3-compilation)
-  - [3.1. Server](#31-server)
-  - [3.2. Client](#32-client)
-- [4. Conclusions](#4-conclusions)
-- [5. Authors](#5-authors)
-- [6. References](#6-references)
-- [7. License](#7-license)
+- [2. Demo](#2-demo)
+- [3. Protocol](#3-protocol)
+  - [3.1. Vocabulary](#31-vocabulary)
+    - [3.1.1. Shared by client and server](#311-shared-by-client-and-server)
+    - [3.1.2. `BAD_REQUEST`](#312-bad_request)
+    - [3.1.3. Server-to-client](#313-server-to-client)
+      - [3.1.3.1. `JOINED_MATCHMAKING`](#3131-joined_matchmaking)
+      - [3.1.3.2. `START_GAME`](#3132-start_game)
+      - [3.1.3.3. `END_GAME`](#3133-end_game)
+      - [3.1.3.4. `HIT`](#3134-hit)
+      - [3.1.3.5. `MISS`](#3135-miss)
+      - [3.1.3.6. `TURN`](#3136-turn)
+    - [3.1.4. Client-to-server](#314-client-to-server)
+      - [3.1.4.1. `JOIN`](#3141-join)
+      - [3.1.4.2. `SHOT`](#3142-shot)
+      - [3.1.4.3. `SURRENDER`](#3143-surrender)
+  - [3.2. Procedure](#32-procedure)
+    - [3.2.1. Connection](#321-connection)
+    - [3.2.2. Gameplay](#322-gameplay)
+    - [3.2.3. End](#323-end)
+    - [3.2.4. Edge cases](#324-edge-cases)
+  - [3.3. Case examples](#33-case-examples)
+    - [3.3.1. Normal development of game](#331-normal-development-of-game)
+    - [3.3.2. Bad request](#332-bad-request)
+    - [3.3.3. Disconnection](#333-disconnection)
+    - [3.3.4. Surrender](#334-surrender)
+    - [3.3.5. Timeout](#335-timeout)
+    - [3.3.6. No handshake](#336-no-handshake)
+    - [3.3.7. Wrong handshake](#337-wrong-handshake)
+- [4. Compilation](#4-compilation)
+  - [4.1. Server](#41-server)
+  - [4.2. Client](#42-client)
+- [5. Conclusions](#5-conclusions)
+- [6. Authors](#6-authors)
+- [7. References](#7-references)
+- [8. License](#8-license)
 
 
 ## 1. Features
@@ -99,8 +100,20 @@ The client's remit is:
 - To detect and notify the player if the client disconnected from the server.
 
 
+## 2. Demo
 
-## 2. Protocol
+Server logging on the bottom, both clients on the top.
+
+> [!IMPORTANT]
+>
+> 👆 Click on the image below to _download_ the demo (it's a video, but GitHub
+> won't show you a video player `¯\_(ツ)_/¯`. Oh, and there's also _no_ embedded
+> player🥲)
+
+[![Battlesocket demo preview.](docs/images/battlesocket-demo-preview.png)](docs/videos/battlesocket-demo.mp4)
+
+
+## 3. Protocol
 
 The BattleShip Protocol (BSP) is an application-layer
 network communication protocol for Battleship game.
@@ -111,7 +124,7 @@ between a game server and its clients.
 This section defines the semantics of BSP
 messages, as well as the procedures regarding them.
 
-### 2.1. Vocabulary
+### 3.1. Vocabulary
 
 Following the convention suggested in the instructions handout, the BSP messages
 follow the structure:
@@ -133,9 +146,9 @@ We define some common symbols that are used in the following sections:
     row = "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J"
     col = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10"
 
-#### 2.1.1. Shared by client and server
+#### 3.1.1. Shared by client and server
 
-#### 2.1.2. `BAD_REQUEST`
+#### 3.1.2. `BAD_REQUEST`
 
 Any malformed request (that is, one that is not a valid message of BSP), is
 replied to with a `BAD_REQUEST` message.
@@ -143,15 +156,15 @@ replied to with a `BAD_REQUEST` message.
     bad_request = "BAD_REQUEST"
 
 
-#### 2.1.3. Server-to-client
+#### 3.1.3. Server-to-client
 
-##### 2.1.3.1. `JOINED_MATCHMAKING`
+##### 3.1.3.1. `JOINED_MATCHMAKING`
 
 When a client joins a game server, we send the following message:
 
     joined_matchmaking = "JOINED_MATCHMAKING"
 
-##### 2.1.3.2. `START_GAME`
+##### 3.1.3.2. `START_GAME`
 
 When a game room has been filled, i.e., there are two clients connected, the
 server notifies both of them that a game will start, along with their respective
@@ -160,7 +173,7 @@ letters (`A` or `B`) and boards:
     start_game = "START_GAME" player_letter "{" (ship_type ":" coordinate+)+ "}"
     ship_type = "carrier" | "battleship" | "cruiser" | "destroyer" | "submarine"
 
-##### 2.1.3.3. `END_GAME`
+##### 3.1.3.3. `END_GAME`
 
 When a game ends the server notifies each client of the reason for ending
 the game. These are the possible reasons to end a game:
@@ -178,44 +191,44 @@ Thus we have these possible messages:
     end_game = "END_GAME" cause player_letter
     cause    = "WINNER" | "SURRENDER" | "DISCONNECTION" | "TIMEOUT"
 
-##### 2.1.3.4. `HIT`
+##### 3.1.3.4. `HIT`
 
 When a shot sent by the client results in a hit, the server sends this message
 to notify each client of a board update:
 
     hit = "HIT" coordinate | "HIT" coordinate "SUNK"
 
-##### 2.1.3.5. `MISS`
+##### 3.1.3.5. `MISS`
 
 Similarly, when a shot sent by the client does _not_ result in a hit, the server
 sends this message to notify each client of a board update:
 
     miss = "MISS" coordinate
 
-##### 2.1.3.6. `TURN`
+##### 3.1.3.6. `TURN`
 
 When a player shot sent by a client is processed, it tells both players who
 goes next through the following message:
 
     turn = "TURN" player_letter
 
-#### 2.1.4. Client-to-server
+#### 3.1.4. Client-to-server
 
-##### 2.1.4.1. `JOIN`
+##### 3.1.4.1. `JOIN`
 
 A client that wants to connect to a BSP server must send a handshake message to
 verify that it's a BSP client and prevent unwanted connections:
 
     join = "JOIN"
 
-##### 2.1.4.2. `SHOT`
+##### 3.1.4.2. `SHOT`
 
 When a player inputs a valid coordinate, the client sends a shot message
 with its corresponding values.
 
     shot = "SHOT" coordinate
 
-##### 2.1.4.3. `SURRENDER`
+##### 3.1.4.3. `SURRENDER`
 
 When a player gives up, the client sends the server a notification with the
 following message:
@@ -223,9 +236,9 @@ following message:
     surrender = "SURRENDER"
 
 
-### 2.2. Procedure
+### 3.2. Procedure
 
-#### 2.2.1. Connection
+#### 3.2.1. Connection
 
 1. A BSP client connects to a BSP server over TCP and sends the handshake
    message (`JOIN`) within the time the server was prepared to wait (usually 2
@@ -238,7 +251,7 @@ following message:
          `JOINED_MATCHMAKING` message to the client, with no need for
          acknowledgment.
 
-#### 2.2.2. Gameplay
+#### 3.2.2. Gameplay
 
 3. When there's enough players to start a game, the server sends a `START_GAME`
    message to both connected clients with their corresponding letter and game
@@ -259,7 +272,7 @@ following message:
        not essential that the server disconnects the client if it's incorrectly
        implemented: it will timeout eventually.
 
- #### 2.2.3. End
+ #### 3.2.3. End
 
 6. After each `HIT` or `MISS`:
 
@@ -270,7 +283,7 @@ following message:
    3. Otherwise, it will change the turn and notify both players by sending a
       `TURN` message.
 
-#### 2.2.4. Edge cases
+#### 3.2.4. Edge cases
 
 7. If a client disconnection is detected, the server will notify the other
    player who, presumably, has not disconnected, with an `END_GAME` message that
@@ -281,7 +294,7 @@ following message:
    of the player who surrendered.
 
 
-### 2.3. Case examples
+### 3.3. Case examples
 
 To illustrate how the protocol, we showcase a non-exhausting collection of UML
 sequence diagrams. These include cases for:
@@ -298,7 +311,7 @@ sequence diagrams. These include cases for:
 4. The handshake procedure, which verifies that the client connecting to the
    server is a BSP client.
 
-#### 2.3.1. Normal development of game
+#### 3.3.1. Normal development of game
 
 ```mermaid
 sequenceDiagram
@@ -337,7 +350,7 @@ sequenceDiagram
 ```
 
 
-#### 2.3.2. Bad request
+#### 3.3.2. Bad request
 
 ```mermaid
 sequenceDiagram
@@ -385,7 +398,7 @@ end
 ```
 
 
-#### 2.3.3. Disconnection
+#### 3.3.3. Disconnection
 
 ```mermaid
 sequenceDiagram
@@ -407,7 +420,7 @@ sequenceDiagram
 ```
 
 
-#### 2.3.4. Surrender
+#### 3.3.4. Surrender
 
 ```mermaid
 sequenceDiagram
@@ -429,7 +442,7 @@ sequenceDiagram
 ```
 
 
-#### 2.3.5. Timeout
+#### 3.3.5. Timeout
 
 ```mermaid
 sequenceDiagram
@@ -453,7 +466,7 @@ sequenceDiagram
 ```
 
 
-#### 2.3.6. No handshake
+#### 3.3.6. No handshake
 
 ```mermaid
 sequenceDiagram
@@ -469,7 +482,7 @@ sequenceDiagram
 ```
 
 
-#### 2.3.7. Wrong handshake
+#### 3.3.7. Wrong handshake
 
 ```mermaid
 sequenceDiagram
@@ -484,9 +497,9 @@ sequenceDiagram
 ```
 
 
-## 3. Compilation
+## 4. Compilation
 
-### 3.1. Server
+### 4.1. Server
 
 No third-party dependencies.
 
@@ -506,7 +519,7 @@ make run
 ```
 
 
-### 3.2. Client
+### 4.2. Client
 
 Written in Python 3 with an embedded third-party.
 
@@ -522,7 +535,7 @@ cd battlesocket-client
 python src/main.py [server_ip] [server_port] -l [log_path]
 ```
 
-## 4. Conclusions
+## 5. Conclusions
 
 We designed an application-layer network communication protocol that works well
 to handle a Battleship game. We tried to define it once and for all from the
@@ -546,13 +559,13 @@ thread pool implementations but noticed how their higher complexity can carry
 along additional problems. These were not worth trying to solve as we had no
 real need to handle time-sensitive communications.
 
-## 5. Authors
+## 6. Authors
 
 Jerónimo Acosta Acevedo,
 Juan José Restrepo Higuita,
 and Luis Miguel Torres Villegas.
 
-## 6. References
+## 7. References
 
 1. Hall, Brian. _Beej’s Guide to Network Programming: Using Internet Sockets_.
    2025, https://beej.us/guide/bgnet/.
@@ -581,6 +594,6 @@ and Luis Miguel Torres Villegas.
 
 
 
-## 7. License
+## 8. License
 
 Copyright 2025 The Authors
